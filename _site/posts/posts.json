@@ -1,8 +1,8 @@
 [
   {
     "path": "posts/welcome/",
-    "title": "Welcome",
-    "description": "Welcome to Kelly's ISSS608 Visual Analytics Blog. We hope you enjoy \nreading what we have to say!",
+    "title": "Kelly's ISSS608 Visual Analytics Blog",
+    "description": "Welcome! Hope you enjoy reading what we have to say.",
     "author": [
       {
         "name": "Kelly Koh",
@@ -13,7 +13,7 @@
     "categories": [],
     "contents": "\r\n\r\n\r\n\r\n",
     "preview": {},
-    "last_modified": "2021-05-15T12:29:08+08:00",
+    "last_modified": "2021-05-15T20:37:33+08:00",
     "input_file": {}
   }
 ]
