@@ -1,19 +1,19 @@
 [
   {
-    "path": "posts/welcome/",
-    "title": "Kelly's ISSS608 Visual Analytics Blog",
-    "description": "Welcome! Hope you enjoy reading what we have to say.",
+    "path": "posts/2021-05-15-dataviz-makeover-1/",
+    "title": "DataViz Makeover 1",
+    "description": "In this post, we present a xxx use case applying the fundamentals of Visual Analytics using Tableau. We will demonstrate xxx.",
     "author": [
       {
         "name": "Kelly Koh",
-        "url": "https://example.com/norajones"
+        "url": "https://www.linkedin.com/in/kellykkw/"
       }
     ],
-    "date": "2021-05-15",
+    "date": "2021-05-16",
     "categories": [],
-    "contents": "\r\n\r\n\r\n\r\n",
+    "contents": "\r\n\r\nContents\r\n1 Critique of Visualisation\r\n1.1 Clarity\r\n1.2 Aesthetic\r\n\r\n2 Proposed Design\r\n2.1 Clarity\r\n2.2 Aesthetic\r\n\r\n3 Proposed Visualisation on Tableau\r\n4 Step-By-Step Preparation\r\n5 Major Observations\r\n\r\n1 Critique of Visualisation\r\nThe original visualisation can be seen below.\r\n1.1 Clarity\r\nTitle and subtitle:\r\nY-Axis:\r\nType of graph:\r\nUnknown data transformation:\r\nAnnotations:\r\n1.2 Aesthetic\r\nColours:\r\nTitle:\r\nTick Marks:\r\nScale:\r\n2 Proposed Design\r\nThe initial sketch of proposed design is as follow:\r\n\r\n2.1 Clarity\r\nTitle and subtitle:\r\nY-Axis:\r\nType of graph:\r\nUnknown data transformation:\r\nAnnotations:\r\n2.2 Aesthetic\r\nColours:\r\nTitle:\r\nTick Marks:\r\nScale:\r\n3 Proposed Visualisation on Tableau\r\nPlease view the proposed visualisation on Tableau Public here.\r\n4 Step-By-Step Preparation\r\n\r\nNo\r\nStep\r\nAction\r\n1\r\nSelect only the top table for each data set and paste into a new sheet using Microsoft Excel.\r\n\r\n2\r\nImport the data into Tableau.\r\n\r\n3\r\nUse Tableau to pivot the data in sheet, with measure values in columns and age in rows.\r\n\r\n4\r\nRemove the CNT in Measure Values.\r\n\r\n5\r\nView the data in Tableau.\r\n\r\n6\r\nExport the data and save the file with an appropriate name.\r\n\r\n7\r\nRepeat steps 1 – 6 for both Male and Female sections. Merge the exported files using Microsoft Excel and add a Category column to identify the dataset source.\r\n\r\n8\r\nImport the cleaned dataset into Tableau.\r\n\r\n9\r\nChange the LFPR from value to percentage by adding a calculated field.\r\n\r\n10\r\nChange the data types to the correct ones and rename columns for better clarity.\r\n\r\n\r\n5 Major Observations\r\nOverall insight\r\n\r\n\r\n\r\n\r\n\r\n",
     "preview": {},
-    "last_modified": "2021-05-15T20:37:33+08:00",
+    "last_modified": "2021-05-16T00:29:29+08:00",
     "input_file": {}
   }
 ]

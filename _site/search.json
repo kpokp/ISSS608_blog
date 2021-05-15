@@ -3,17 +3,17 @@
     {
       "path": "about.html",
       "title": "About this blog",
-      "description": "Some additional details about the blog",
+      "description": "This blog was created for the Singapore Management University, Masters of IT in Business, ISSS608: Visual Analytics module in AY2020/21 Term 3.",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-05-15T20:38:44+08:00"
+      "last_modified": "2021-05-16T00:29:48+08:00"
     },
     {
       "path": "index.html",
       "title": "Kelly's Blog",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-05-15T20:39:31+08:00"
+      "last_modified": "2021-05-16T00:29:49+08:00"
     }
   ],
   "collections": ["posts/posts.json"]

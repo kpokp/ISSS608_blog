@@ -1,0 +1,82 @@
+---
+title: "DataViz Makeover 1"
+description: |
+  In this post, we present a xxx use case applying the fundamentals of Visual Analytics using Tableau. We will demonstrate xxx.
+preview: images/datavizmakeover1.png
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+```
+
+# 1 Critique of Visualisation
+The original visualisation can be seen below.
+
+### 1.1 Clarity
+1. **Title and subtitle**:
+2. **Y-Axis**:
+3. **Type of graph**:
+4. **Unknown data transformation**:
+5. **Annotations**:
+
+### 1.2 Aesthetic
+1. **Colours**:
+2. **Title**:
+3. **Tick Marks**:
+4. **Scale**:
+
+# 2 Proposed Design
+The initial sketch of proposed design is as follow:
+
+![](./images/cute.jpg){#id .class width=50% height=50%}
+
+### 2.1 Clarity
+1. **Title and subtitle**:
+2. **Y-Axis**:
+3. **Type of graph**:
+4. **Unknown data transformation**:
+5. **Annotations**:
+
+### 2.2 Aesthetic
+1. **Colours**:
+2. **Title**:
+3. **Tick Marks**:
+4. **Scale**:
+
+# 3 Proposed Visualisation on Tableau
+Please view the proposed visualisation on Tableau Public [here](https://www.google.com/).
+
+# 4 Step-By-Step Preparation
+::: l-body
+|No| Step                | Action                                       |
+|--|---------------------|----------------------------------------------|
+|1| Select only the top table for each data set and paste into a new sheet using Microsoft Excel.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|2| Import the data into Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|3| Use Tableau to pivot the data in sheet, with measure values in columns and age in rows.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|4| Remove the CNT in Measure Values.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|5| View the data in Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|6| Export the data and save the file with an appropriate name.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|7| Repeat steps 1 – 6 for both Male and Female sections. Merge the exported files using Microsoft Excel and add a Category column to identify the dataset source.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|8| Import the cleaned dataset into Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|9| Change the LFPR from value to percentage by adding a calculated field.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|10| 	Change the data types to the correct ones and rename columns for better clarity.| ![](./images/logo.png){#id .class width=50% height=50%}|
+:::
+
+
+# 5 Major Observations
+1. Overall insight
+2. 
+3. 
+
