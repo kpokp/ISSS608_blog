@@ -1,11 +1,13 @@
 ---
 title: "DataViz Makeover 1"
 description: |
-  In this post, we present a xxx use case applying the fundamentals of Visual Analytics using Tableau. We will demonstrate xxx.
+  In this post, we present a trade data use case applying the fundamentals of Visual Analytics using Tableau. We will critique the visualisation and propose an alternative to address the flaws.
 preview: images/datavizmakeover1.png
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
 date: "`r Sys.Date()`"
 output:
   distill::distill_article:

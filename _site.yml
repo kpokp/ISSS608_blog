@@ -1,7 +1,7 @@
 name: "blog_ISSS608"
 title: "Kelly's Blog"
 description: |
-  Kelly's Blog
+  Kelly's Visual Analytics Blog
 output_dir: "_site"
 navbar:
   search: true
