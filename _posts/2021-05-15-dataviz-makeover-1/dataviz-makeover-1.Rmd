@@ -22,38 +22,52 @@ library(knitr)
 ```
 
 # 1 Critique of Visualisation
-The original visualisation can be seen below.
+The original visualisation is created by using data provided by Department of Statistics, Singapore (DOS). The data are available under the sub-section of [Merchandise Trade by Region/Market](https://www.singstat.gov.sg/find-data/search-by-theme/trade-and-investment/merchandise-trade/latest-data).
+
+![](./images/originaldata.png)
 
 ### 1.1 Clarity
-1. **Title and subtitle**:
-2. **Y-Axis**:
-3. **Type of graph**:
-4. **Unknown data transformation**:
-5. **Annotations**:
+1. **Titles**: The title and legend of the data visualization do not convey the message well. 
+- The title mentions that the charts show merchandise trade of top six trading countries without clarifying that they are trading partners of Singapore. We are also unsure if the top six are selected based on total merchandise trade. 
+- One of the charts feature Hong Kong, which is a special administration region of China, not a country. 
+- The unit of measure is also not clear as neither the main title nor the legend title mention if the charts are measuring physical arrivals of merchandise or the monetary value of the merchandise. The source data reveals that the unit of measure is in Singapore dollars. 
+- The title indicates that the data is from 2019 to 2020 but the charts show values from 2019 to 2021. 
+- The title does not mention what is the granularity of the data presented (e.g. yearly, quarterly or monthly). 
+2. **Y-Axis**: The Y-axes of the charts are misleading.
+- The scales of the dual axes of each chart are not synchronized. For example, maximum scale value of export to Hong Kong with tick mark is 6M and 800K for import. The horizontal tick lines follow the primary Y-axis (export). As such, we cannot visually tell what is the relative value of export and import. 
+- Furthermore, the scales of the Y-axes are not fixed across the six charts, preventing us from determining the relative ranking of the six countries/regions based on their merchandise trade.
+3. **X-Axis**: The X-axis of the charts are misleading.
+- The x-axis of the charts is labeled 'Month of Period' but only show the years without minor tick marks to indicate the months. We are unsure when does the data truly end. 
+4. **Type of Graph**: Area charts are usually used to depict quantitative volume change over time. They focus on analyzing the part-to-whole relation. The use of the area chart without equal dual axes could mislead readers into comparing the relative amount of export and import of each country/region. 
+5. **Subtitle / Annotation**: There is no subtitle or annotation on the graph that highlights the significant finding or conclusion. 
 
 ### 1.2 Aesthetic
-1. **Colours**:
-2. **Title**:
-3. **Tick Marks**:
-4. **Scale**:
+1. **Legend**: The legend is placed on the right side of the chart. Readers could not immediately identify if the blue or yellow area refer to export or import. 
+2. **Title**: The main graphic title's font size is smaller than the subtitle for each chart and not centralized. 
+3. **Chart Order and Sizing**: There is no obvious logic in the ordering of the six charts. The chart widths vary. 
+4. **Data Ink**: There is data ink on the axes labels but not the values of the tick marks.
+5. **Axis Labels**: The axis labels for Y-axis and X-axis are repeated unnecessarily. 
+6. **Colours and Shading**: The area charts used blue and yellow, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the opacity level still presents readers from seeing the grid lines clearly.
 
 # 2 Proposed Design
 The initial sketch of proposed design is as follow:
 
-![](./images/cute.jpg){#id .class width=50% height=50%}
+![:scale 35%](./images/cute.jpg)
 
 ### 2.1 Clarity
-1. **Title and subtitle**:
+1. **Titles**:
 2. **Y-Axis**:
-3. **Type of graph**:
-4. **Unknown data transformation**:
-5. **Annotations**:
+3. **X-Axis**:
+4. **Type of Chart**:
+5. **Subtitle / Annotation**: 
 
 ### 2.2 Aesthetic
-1. **Colours**:
-2. **Title**:
-3. **Tick Marks**:
-4. **Scale**:
+1. **Legend**: 
+2. **Title**:  
+3. **Chart Order and Sizing**: 
+4. **Data Ink**: 
+5. **Axis Labels**:  
+6. **Colours and Shading**: 
 
 # 3 Proposed Visualisation on Tableau
 Please view the proposed visualisation on Tableau Public [here](https://www.google.com/).
