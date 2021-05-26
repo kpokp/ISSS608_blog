@@ -60,6 +60,7 @@ First, let us import the data into R by using read_csv() of readr package.
 wine <- read_csv("data/wine_quality.csv")
 
 
+
 Notice that beside quality and type, the rest of the variables are numerical and continuous data type. 
 
 

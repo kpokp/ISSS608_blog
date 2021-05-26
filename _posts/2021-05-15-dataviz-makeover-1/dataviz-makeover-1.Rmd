@@ -1,5 +1,5 @@
 ---
-title: "DataViz Makeover 1"
+title: "DataViz Makeover 1 (Work in Progress)"
 description: |
   In this post, we present a trade data use case applying the fundamentals of Visual Analytics using Tableau. We will critique the visualisation and propose an alternative to address the flaws.
 preview: images/datavizmakeover1.png
@@ -9,6 +9,7 @@ author:
     affiliation: School of Computing and Information Systems, Singapore Management University
     affiliation_url: https://scis.smu.edu.sg/
 date: "`r Sys.Date()`"
+theme:
 output:
   distill::distill_article:
     toc: true
@@ -49,15 +50,15 @@ The original visualisation is created by using data provided by Department of St
 3. **Chart Order and Sizing**: There is no obvious logic in the ordering of the six charts. The chart widths vary. 
 4. **Data Ink**: There is data ink on the axes labels but not the values of the tick marks.
 5. **Axis Labels**: The axis labels for Y-axis and X-axis are repeated unnecessarily. 
-6. **Colours and Shading**: The area charts used blue and yellow, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the opacity level still presents readers from seeing the grid lines clearly.
+6. **Colours and Shading**: The area charts used blue and yellow, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and yellow is distracting and prevent readers on focusing on the difference between export and import.
 
 # 2 Proposed Design
 The initial sketch of proposed design is as follow:
 
-![:scale 35%](./images/cute.jpg)
+![](./images/sketch.jpg)
 
 ### 2.1 Clarity
-1. **Titles**:
+1. **Titles**: 
 2. **Y-Axis**:
 3. **X-Axis**:
 4. **Type of Chart**:
