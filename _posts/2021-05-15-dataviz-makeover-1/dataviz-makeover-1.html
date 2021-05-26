@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","images/cute.jpg","images/cute2.png","images/logo.png","images/originaldata.png","images/sketch.jpg"]}
+  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","images/cute.jpg","images/cute2.png","images/logo.png","images/originaldata.png","images/sketch.jpg","images/step1.png","images/step10.png","images/step11.png","images/step12.png","images/step2.png","images/step3.png","images/step4.png","images/step5.png","images/step6.png","images/step7.png","images/step8.png","images/step9.png"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1503,62 +1503,104 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <p><img src="images/originaldata.png" /></p>
 <h3 id="clarity">1.1 Clarity</h3>
 <ol type="1">
-<li><strong>Titles</strong>: The title and legend of the data visualization do not convey the message well.</li>
-</ol>
+<li><strong>Titles</strong>: The title and legend of the data visualization do not convey the message well.
 <ul>
-<li>The title mentions that the charts show merchandise trade of top six trading countries without clarifying that they are trading partners of Singapore. We are also unsure if the top six are selected based on total merchandise trade.</li>
+<li>Title mentions that the charts show merchandise trade of top six trading countries without clarifying that they are trading partners of Singapore. We are also unsure if the top six are selected based on total merchandise trade.</li>
 <li>One of the charts feature Hong Kong, which is a special administration region of China, not a country.</li>
 <li>The unit of measure is also not clear as neither the main title nor the legend title mention if the charts are measuring physical arrivals of merchandise or the monetary value of the merchandise. The source data reveals that the unit of measure is in Singapore dollars.</li>
-<li>The title indicates that the data is from 2019 to 2020 but the charts show values from 2019 to 2021.</li>
-<li>The title does not mention what is the granularity of the data presented (e.g. yearly, quarterly or monthly).</li>
-</ul>
-<ol start="2" type="1">
-<li><strong>Y-Axis</strong>: The Y-axes of the charts are misleading.</li>
-</ol>
+<li>Title indicates that the data is from 2019 to 2020 but the charts show values from 2019 to 2021.</li>
+<li>Title does not mention what is the granularity of the data presented (e.g. yearly, quarterly or monthly).</li>
+<li>No insights highlighted</li>
+</ul></li>
+<li><strong>Chart Type</strong>: The area charts are standalone, making it hard for readers to compare the trade value across the partners.</li>
+<li><strong>Y-Axis</strong>: The Y-axes of the charts are misleading.
 <ul>
-<li>The scales of the dual axes of each chart are not synchronized. For example, maximum scale value of export to Hong Kong with tick mark is 6M and 800K for import. The horizontal tick lines follow the primary Y-axis (export). As such, we cannot visually tell what is the relative value of export and import.</li>
+<li>The scales of the dual axes of each chart are not synchronised. For example, maximum scale value of export to Hong Kong with tick mark is 6M and 800K for import. The horizontal tick lines follow the primary Y-axis (export). As such, we cannot visually tell what is the relative value of export and import.</li>
 <li>Furthermore, the scales of the Y-axes are not fixed across the six charts, preventing us from determining the relative ranking of the six countries/regions based on their merchandise trade.</li>
-</ul>
-<ol start="3" type="1">
-<li><strong>X-Axis</strong>: The X-axis of the charts are misleading.</li>
-</ol>
+</ul></li>
+<li><strong>X-Axis</strong>: The X-axis of the charts are misleading.
 <ul>
 <li>The x-axis of the charts is labeled ‘Month of Period’ but only show the years without minor tick marks to indicate the months. We are unsure when does the data truly end.</li>
-</ul>
-<ol start="4" type="1">
-<li><strong>Type of Graph</strong>: Area charts are usually used to depict quantitative volume change over time. They focus on analyzing the part-to-whole relation. The use of the area chart without equal dual axes could mislead readers into comparing the relative amount of export and import of each country/region.</li>
-<li><strong>Subtitle / Annotation</strong>: There is no subtitle or annotation on the graph that highlights the significant finding or conclusion.</li>
+</ul></li>
+<li><strong>Annotation / Source</strong>:
+<ul>
+<li>There is no annotation on the graph that highlights the significant finding or conclusion.</li>
+<li>There is no recognition of the data source.</li>
+</ul></li>
 </ol>
 <h3 id="aesthetic">1.2 Aesthetic</h3>
 <ol type="1">
 <li><strong>Legend</strong>: The legend is placed on the right side of the chart. Readers could not immediately identify if the blue or yellow area refer to export or import.</li>
 <li><strong>Title</strong>: The main graphic title’s font size is smaller than the subtitle for each chart and not centralized.</li>
 <li><strong>Chart Order and Sizing</strong>: There is no obvious logic in the ordering of the six charts. The chart widths vary.</li>
-<li><strong>Data Ink</strong>: There is data ink on the axes labels but not the values of the tick marks.</li>
 <li><strong>Axis Labels</strong>: The axis labels for Y-axis and X-axis are repeated unnecessarily.</li>
-<li><strong>Colours and Shading</strong>: The area charts used blue and yellow, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and yellow is distracting and prevent readers on focusing on the difference between export and import.</li>
+<li><strong>Colours and Shading</strong>: The area charts used blue and orange, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and orange is distracting and prevent readers on focusing on the difference between export and import.</li>
+<li><strong>Data Ink</strong>: There is data ink on the axes labels but not the values of the tick marks.</li>
 </ol>
 <h1 id="proposed-design">2 Proposed Design</h1>
 <p>The initial sketch of proposed design is as follow:</p>
 <p><img src="images/sketch.jpg" /></p>
 <h3 id="clarity-1">2.1 Clarity</h3>
 <ol type="1">
-<li><strong>Titles</strong>:</li>
-<li><strong>Y-Axis</strong>:</li>
-<li><strong>X-Axis</strong>:</li>
-<li><strong>Type of Chart</strong>:</li>
-<li><strong>Subtitle / Annotation</strong>:</li>
+<li><strong>Titles</strong>:
+<ul>
+<li>To use the term ‘trade partners’ to represent the countries and regions</li>
+<li>To add a main visual title to give readers the context - ‘Singapore’s Merchandise Trade with Major Partners’</li>
+<li>To have a title for each chart that showcases the main insight.</li>
+<li>To add a functional subtitle for each chart. It should identify the granularity of the data, the unit of measure for the Y-Axis and the period covered.</li>
+<li>To rename the legend title to ‘Trade Type’</li>
+</ul></li>
+<li><strong>Chart Type</strong>:
+<ul>
+<li>Opt for trellis charts to allow easy comparison across the partners with 1 primary Y-axis</li>
+<li>Add Chart 1, a bar chart to give readers an overview of how the 6 major trading partners are ranked based on annual total merchandise trade value and the changes in trade value year-on-year</li>
+<li>Chart 2 will be a modified version of the original visualisation in trellis format</li>
+</ul></li>
+<li><strong>Y-Axis</strong>:
+<ul>
+<li>Keep to a primary Y-axis</li>
+<li>Indicate the unit of measure ‘$X.XB’ on the scales and indicate the granularity in the label ‘(Billions)’</li>
+</ul></li>
+<li><strong>X-Axis</strong>:
+<ul>
+<li>For Chart 2, indicate start of the year with ‘Month’ and ‘Year’ e.g. ‘Jan’19’ as major tick mark and every month as minor tick marks. Chart should not show 2021.</li>
+<li>For Chart 2, add a reference line at start of 2020 to allow readers to easily compare between the monthly trends between 2019 and 2020</li>
+</ul></li>
+<li><strong>Annotation / Source</strong>:
+<ul>
+<li>Add annotations to Chart 2 to highlight points that supports the insights</li>
+<li>Add data source at foot of visualisation</li>
+</ul></li>
 </ol>
 <h3 id="aesthetic-1">2.2 Aesthetic</h3>
 <ol type="1">
-<li><strong>Legend</strong>:</li>
-<li><strong>Title</strong>:<br />
-</li>
-<li><strong>Chart Order and Sizing</strong>:</li>
-<li><strong>Data Ink</strong>:</li>
-<li><strong>Axis Labels</strong>:<br />
-</li>
-<li><strong>Colours and Shading</strong>:</li>
+<li><strong>Legend</strong>:
+<ul>
+<li>As the legend position is kept on the side, change the font color of the word ‘Export’ to blue and ‘Import’ to dark yellow to guide readers.</li>
+</ul></li>
+<li><strong>Title</strong>:
+<ul>
+<li>Align the titles to the left</li>
+<li>Choose distinctive font sizes for main visual title, chart title and chart subtitles</li>
+</ul></li>
+<li><strong>Chart Order and Sizing</strong>:
+<ul>
+<li>Rank the partners based on total trade value in the trellis charts</li>
+<li>Align the tiles between Chart 1 and 2 so that readers can easily compare across charts if wanted</li>
+</ul></li>
+<li><strong>Data Ink</strong>:
+<ul>
+<li>Enhance data ink for Y-axis and X-axis values and partner names</li>
+</ul></li>
+<li><strong>Axis Labels</strong>:
+<ul>
+<li>Remove both axis labels for ‘Country’ and ‘Month’ to avoid repetition and excess information</li>
+</ul></li>
+<li><strong>Colours and Shading</strong>:
+<ul>
+<li>Remove the overlap between the blue and orange area</li>
+<li>Overlay the area charts with line charts to allow users to identify the trend easier</li>
+</ul></li>
 </ol>
 <h1 id="proposed-visualisation-on-tableau">3 Proposed Visualisation on Tableau</h1>
 <p>Please view the proposed visualisation on Tableau Public <a href="https://www.google.com/">here</a>.</p>
@@ -1580,53 +1622,68 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <tbody>
 <tr class="odd">
 <td>1</td>
-<td>Select only the top table for each data set and paste into a new sheet using Microsoft Excel.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Unzip the output folder downloaded from the SingStat website. Load the outputFile excel file into Tableau Prep Builder. Drag the ‘T1’ and ‘T2’ worksheet into main pane.</td>
+<td><img src="images/step1.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="even">
 <td>2</td>
-<td>Import the data into Tableau.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Use the Data Interpreter. Rename ‘T1’ and ‘T2’ to ‘Import’ and ‘Export’ respectively and initiate the cleaning node from each data node.</td>
+<td><img src="images/step2.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="odd">
 <td>3</td>
-<td>Use Tableau to pivot the data in sheet, with measure values in columns and age in rows.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Under the ‘Clean 1’ node, clean ‘Variables’ using ‘Split Values’ with ‘(‘ as the separator. Rename column as ‘Country’. Repeat for ‘Clean 2’.</td>
+<td><img src="images/step3.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="even">
 <td>4</td>
-<td>Remove the CNT in Measure Values.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Under ‘Clean 1’ node, filter the rows under ‘Country’ to remove non-Country and total observations. Repeat for ‘Clean 2’.</td>
+<td><img src="images/step4.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="odd">
 <td>5</td>
-<td>View the data in Tableau.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Add Pivot nodes after ‘Clean 1’ and ‘Clean 2’. Under ‘Pivot 1’, select all months under ‘Fields’ to the ‘Pivoted Fields’ panel. Repeat for ‘Pivot 2’.</td>
+<td><img src="images/step5.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="even">
 <td>6</td>
-<td>Export the data and save the file with an appropriate name.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Under ‘Pivot 1’, rename ‘Pivot1 Names’ to ‘Month’ and change data type to ‘Date’. Rename ‘Pivot1 Values’ to ‘Import (Thousand Dollars)’. Remove ‘Variables’. Repeat for ‘Pivot 2’ but rename ‘Pivot1 Values’ to ‘Export (Thousand Dollars)’.</td>
+<td><img src="images/step6.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="odd">
 <td>7</td>
-<td>Repeat steps 1 – 6 for both Male and Female sections. Merge the exported files using Microsoft Excel and add a Category column to identify the dataset source.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Do a full join between ‘Pivot 1’ and ‘Pivot 2’ with ‘Country’ and ‘Month’ as the join clauses.</td>
+<td><img src="images/step7.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="even">
 <td>8</td>
-<td>Import the cleaned dataset into Tableau.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Create a ‘Clean’ node after ‘Join 1’ to merge duplicated country and month variables.</td>
+<td><img src="images/step8.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="odd">
 <td>9</td>
-<td>Change the LFPR from value to percentage by adding a calculated field.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Create a ‘Pivot’ node after ‘Clean 3’ and change ‘Export (Thousand Dollars)’ and ‘Import (Thousand Dollars)’ from columns to rows.</td>
+<td><img src="images/step9.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 <tr class="even">
 <td>10</td>
-<td>Change the data types to the correct ones and rename columns for better clarity.</td>
-<td><img src="images/logo.png" id="id" class="class" style="width:50.0%;height:50.0%" /></td>
+<td>Split ‘Pivot1 Names’ and rename the field of ‘Split 1’ to ‘Trade Type’. Multiply ‘(Thousand Dollars)’ by 1000 and rename it ‘Trade Value’. Remove the unnecessary fields ‘(Thousand Dollars)’ and ‘Pivot1 Names’.</td>
+<td><img src="images/step10.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Create a ‘Output’ node after ‘Pivot 3’ node and save output as ‘Monthly Singapore Merchandise Trade’.</td>
+<td><img src="images/step11.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Set up a connection on Tableau Desktop to the ‘Monthly Singapore Merchandise Trade’ hyper’s extract.</td>
+<td><img src="images/step12.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Split ‘Pivot1 Names’ and rename the field of ‘Split 1’ to ‘Trade Type’. Multiply ‘(Thousand Dollars)’ by 1000 and rename it ‘Trade Value’. Remove the unnecessary fields ‘(Thousand Dollars)’ and ‘Pivot1 Names’.</td>
+<td><img src="./images/step13.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 </tbody>
 </table>

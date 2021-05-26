@@ -31,26 +31,30 @@ The original visualisation is created by using data provided by Department of St
 
 ### 1.1 Clarity
 1. **Titles**: The title and legend of the data visualization do not convey the message well. 
-- The title mentions that the charts show merchandise trade of top six trading countries without clarifying that they are trading partners of Singapore. We are also unsure if the top six are selected based on total merchandise trade. 
-- One of the charts feature Hong Kong, which is a special administration region of China, not a country. 
-- The unit of measure is also not clear as neither the main title nor the legend title mention if the charts are measuring physical arrivals of merchandise or the monetary value of the merchandise. The source data reveals that the unit of measure is in Singapore dollars. 
-- The title indicates that the data is from 2019 to 2020 but the charts show values from 2019 to 2021. 
-- The title does not mention what is the granularity of the data presented (e.g. yearly, quarterly or monthly). 
-2. **Y-Axis**: The Y-axes of the charts are misleading.
-- The scales of the dual axes of each chart are not synchronized. For example, maximum scale value of export to Hong Kong with tick mark is 6M and 800K for import. The horizontal tick lines follow the primary Y-axis (export). As such, we cannot visually tell what is the relative value of export and import. 
-- Furthermore, the scales of the Y-axes are not fixed across the six charts, preventing us from determining the relative ranking of the six countries/regions based on their merchandise trade.
-3. **X-Axis**: The X-axis of the charts are misleading.
-- The x-axis of the charts is labeled 'Month of Period' but only show the years without minor tick marks to indicate the months. We are unsure when does the data truly end. 
-4. **Type of Graph**: Area charts are usually used to depict quantitative volume change over time. They focus on analyzing the part-to-whole relation. The use of the area chart without equal dual axes could mislead readers into comparing the relative amount of export and import of each country/region. 
-5. **Subtitle / Annotation**: There is no subtitle or annotation on the graph that highlights the significant finding or conclusion. 
+    +  Title mentions that the charts show merchandise trade of top six trading countries without clarifying that they are trading partners of Singapore. We are also unsure if the top six are selected based on total merchandise trade. 
+    + One of the charts feature Hong Kong, which is a special administration region of China, not a country. 
+    + The unit of measure is also not clear as neither the main title nor the legend title mention if the charts are measuring physical arrivals of merchandise or the monetary value of the merchandise. The source data reveals that the unit of measure is in Singapore dollars. 
+    + Title indicates that the data is from 2019 to 2020 but the charts show values from 2019 to 2021. 
+    + Title does not mention what is the granularity of the data presented (e.g. yearly, quarterly or monthly). 
+    + No insights highlighted 
+2. **Chart Type**: The area charts are standalone, making it hard for readers to compare the trade value across the partners. 
+3. **Y-Axis**: The Y-axes of the charts are misleading.
+    + The scales of the dual axes of each chart are not synchronised. For example, maximum scale value of export to Hong Kong with tick mark is 6M and 800K for import. The horizontal tick lines follow the primary Y-axis (export). As such, we cannot visually tell what is the relative value of export and import. 
+    + Furthermore, the scales of the Y-axes are not fixed across the six charts, preventing us from determining the relative ranking of the six countries/regions based on their merchandise trade.
+4. **X-Axis**: The X-axis of the charts are misleading.
+    + The x-axis of the charts is labeled 'Month of Period' but only show the years without minor tick marks to indicate the months. We are unsure when does the data truly end. 
+5. **Annotation / Source**: 
+    + There is no annotation on the graph that highlights the significant finding or conclusion. 
+    + There is no recognition of the data source. 
+
 
 ### 1.2 Aesthetic
 1. **Legend**: The legend is placed on the right side of the chart. Readers could not immediately identify if the blue or yellow area refer to export or import. 
 2. **Title**: The main graphic title's font size is smaller than the subtitle for each chart and not centralized. 
 3. **Chart Order and Sizing**: There is no obvious logic in the ordering of the six charts. The chart widths vary. 
-4. **Data Ink**: There is data ink on the axes labels but not the values of the tick marks.
-5. **Axis Labels**: The axis labels for Y-axis and X-axis are repeated unnecessarily. 
-6. **Colours and Shading**: The area charts used blue and yellow, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and yellow is distracting and prevent readers on focusing on the difference between export and import.
+4. **Axis Labels**: The axis labels for Y-axis and X-axis are repeated unnecessarily. 
+5. **Colours and Shading**: The area charts used blue and orange, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and orange is distracting and prevent readers on focusing on the difference between export and import.
+6. **Data Ink**: There is data ink on the axes labels but not the values of the tick marks.
 
 # 2 Proposed Design
 The initial sketch of proposed design is as follow:
@@ -59,18 +63,42 @@ The initial sketch of proposed design is as follow:
 
 ### 2.1 Clarity
 1. **Titles**: 
-2. **Y-Axis**:
-3. **X-Axis**:
-4. **Type of Chart**:
-5. **Subtitle / Annotation**: 
+    + To use the term 'trade partners' to represent the countries and regions 
+    + To add a main visual title to give readers the context - 'Singapore's Merchandise Trade with Major Partners'
+    + To have a title for each chart that showcases the main insight. 
+    + To add a functional subtitle for each chart. It should identify the granularity of the data, the unit of measure for the Y-Axis and the period covered. 
+    + To rename the legend title to 'Trade Type'
+2. **Chart Type**: 
+    + Opt for trellis charts to allow easy comparison across the partners with 1 primary Y-axis
+    + Add Chart 1, a bar chart to give readers an overview of how the 6 major trading partners are ranked based on annual total merchandise trade value and the changes in trade value year-on-year
+    + Chart 2 will be a modified version of the original visualisation in trellis format
+3. **Y-Axis**: 
+    + Keep to a primary Y-axis 
+    + Indicate the unit of measure '$X.XB' on the scales and indicate the granularity in the label '(Billions)'
+4. **X-Axis**:
+    + For Chart 2, indicate start of the year with 'Month' and 'Year' e.g. 'Jan'19' as major tick mark and every month as minor tick marks. Chart should not show 2021.
+    + For Chart 2, add a reference line at start of 2020 to allow readers to easily compare between the monthly trends between 2019 and 2020
+5. **Annotation / Source**: 
+    + Add annotations to Chart 2 to highlight points that supports the insights
+    + Add data source at foot of visualisation
+
 
 ### 2.2 Aesthetic
 1. **Legend**: 
+    + As the legend position is kept on the side, change the font color of the word 'Export' to blue and 'Import' to dark yellow to guide readers.
 2. **Title**:  
+    + Align the titles to the left 
+    + Choose distinctive font sizes for main visual title, chart title and chart subtitles
 3. **Chart Order and Sizing**: 
+    + Rank the partners based on total trade value in the trellis charts
+    + Align the tiles between Chart 1 and 2 so that readers can easily compare across charts if wanted
 4. **Data Ink**: 
+    + Enhance data ink for Y-axis and X-axis values and partner names 
 5. **Axis Labels**:  
+    + Remove both axis labels for 'Country' and 'Month' to avoid repetition and excess information
 6. **Colours and Shading**: 
+    + Remove the overlap between the blue and orange area
+    + Overlay the area charts with line charts to allow users to identify the trend easier 
 
 # 3 Proposed Visualisation on Tableau
 Please view the proposed visualisation on Tableau Public [here](https://www.google.com/).
@@ -79,16 +107,19 @@ Please view the proposed visualisation on Tableau Public [here](https://www.goog
 ::: l-body
 |No| Step                | Action                                       |
 |--|---------------------|----------------------------------------------|
-|1| Select only the top table for each data set and paste into a new sheet using Microsoft Excel.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|2| Import the data into Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|3| Use Tableau to pivot the data in sheet, with measure values in columns and age in rows.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|4| Remove the CNT in Measure Values.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|5| View the data in Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|6| Export the data and save the file with an appropriate name.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|7| Repeat steps 1 – 6 for both Male and Female sections. Merge the exported files using Microsoft Excel and add a Category column to identify the dataset source.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|8| Import the cleaned dataset into Tableau.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|9| Change the LFPR from value to percentage by adding a calculated field.| ![](./images/logo.png){#id .class width=50% height=50%}|
-|10| 	Change the data types to the correct ones and rename columns for better clarity.| ![](./images/logo.png){#id .class width=50% height=50%}|
+|1| Unzip the output folder downloaded from the SingStat website. Load the outputFile excel file into Tableau Prep Builder. Drag the ‘T1’ and ‘T2’ worksheet into main pane.| ![](./images/step1.png){#id .class width=100%}|
+|2| Use the Data Interpreter. Rename ‘T1’ and ‘T2’ to ‘Import’ and ‘Export’ respectively and initiate the cleaning node from each data node. | ![](./images/step2.png){#id .class width=100%}|
+|3| Under the ‘Clean 1’ node, clean ‘Variables’ using ‘Split Values’ with ‘(‘ as the separator. Rename column as ‘Country’. Repeat for ‘Clean 2’.| ![](./images/step3.png){#id .class width=100%}|
+|4| Under ‘Clean 1’ node, filter the rows under ‘Country’ to remove non-Country and total observations. Repeat for ‘Clean 2’.| ![](./images/step4.png){#id .class width=100%}|
+|5| Add Pivot nodes after ‘Clean 1’ and ‘Clean 2’. Under ‘Pivot 1’, select all months under ‘Fields’ to the ‘Pivoted Fields’ panel. Repeat for ‘Pivot 2’.| ![](./images/step5.png){#id .class width=100%}|
+|6| Under ‘Pivot 1’, rename ‘Pivot1 Names’ to ‘Month’ and change data type to ‘Date’. Rename ‘Pivot1 Values’ to ‘Import (Thousand Dollars)’. Remove ‘Variables’. Repeat for ‘Pivot 2’ but rename ‘Pivot1 Values’ to ‘Export (Thousand Dollars)’.| ![](./images/step6.png){#id .class width=100%}|
+|7| Do a full join between ‘Pivot 1’ and ‘Pivot 2’ with ‘Country’ and ‘Month’ as the join clauses.| ![](./images/step7.png){#id .class width=100%}|
+|8| Create a ‘Clean’ node after ‘Join 1’ to merge duplicated country and month variables.| ![](./images/step8.png){#id .class width=100%}|
+|9| Create a ‘Pivot’ node after ‘Clean 3’ and change ‘Export (Thousand Dollars)’ and ‘Import (Thousand Dollars)’ from columns to rows.| ![](./images/step9.png){#id .class width=100%}|
+|10| Split ‘Pivot1 Names’ and rename the field of ‘Split 1’ to ‘Trade Type’. Multiply ‘(Thousand Dollars)’ by 1000 and rename it ‘Trade Value’. Remove the unnecessary fields ‘(Thousand Dollars)’ and ‘Pivot1 Names’.| ![](./images/step10.png){#id .class width=100%}|
+|11| Create a ‘Output’ node after ‘Pivot 3’ node and save output as ‘Monthly Singapore Merchandise Trade’.| ![](./images/step11.png){#id .class width=100%}|
+|12| Set up a connection on Tableau Desktop to the ‘Monthly Singapore Merchandise Trade’ hyper’s extract.| ![](./images/step12.png){#id .class width=100%}|
+|13| Split ‘Pivot1 Names’ and rename the field of ‘Split 1’ to ‘Trade Type’. Multiply ‘(Thousand Dollars)’ by 1000 and rename it ‘Trade Value’. Remove the unnecessary fields ‘(Thousand Dollars)’ and ‘Pivot1 Names’.| ![](./images/step13.png){#id .class width=100%}|
 :::
 
 
