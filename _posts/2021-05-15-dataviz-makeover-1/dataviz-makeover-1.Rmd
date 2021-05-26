@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(knitr)
 ```
 
-# 1 Critique of Visualisation
+# 1. Critique of Visualisation
 The original visualisation is created by using data provided by Department of Statistics, Singapore (DOS). The data are available under the sub-section of [Merchandise Trade by Region/Market](https://www.singstat.gov.sg/find-data/search-by-theme/trade-and-investment/merchandise-trade/latest-data).
 
 ![](./images/originaldata.png)
@@ -56,7 +56,7 @@ The original visualisation is created by using data provided by Department of St
 5. **Colours and Shading**: The area charts used blue and orange, which are friendly to color blind readers. And transparency is used to avoid occlusion issues. However, the overlap of blue and orange is distracting and prevent readers on focusing on the difference between export and import.
 6. **Data Ink**: There is data ink on the axes labels but not the values of the tick marks.
 
-# 2 Proposed Design
+# 2. Proposed Design
 The initial sketch of proposed design is as follow:
 
 ![](./images/sketch.jpg)
@@ -100,13 +100,13 @@ The initial sketch of proposed design is as follow:
     + Remove the overlap between the blue and orange area
     + Overlay the area charts with line charts to allow users to identify the trend easier 
 
-# 3 Proposed Visualisation on Tableau
-Please view the proposed visualisation on Tableau Public [here](https://www.google.com/).
+# 3. Proposed Visualisation on Tableau
+Please view the proposed visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/DatavizMakeover1_16220368938730/Dashboard1).
 
 ![](./images/dashboard.png){#id .class width=100%}
 
 
-# 4 Step-By-Step Preparation
+# 4. Step-By-Step Preparation
 ::: l-body
 |No| Step                | Action                                       |
 |--|---------------------|----------------------------------------------|
@@ -144,12 +144,12 @@ Please view the proposed visualisation on Tableau Public [here](https://www.goog
 |32| Bold the country values, Y-axis and X-axis values. Change the country values font size to 10. Add a title and subtitle to the chart.| ![](./images/step32.png){#id .class width=100%}|
 |33| Add annotation to points when exports hit the minimal value after declining drastically.| ![](./images/step33.png){#id .class width=100%}|
 |34| Create a ‘Dashboard’. Drag ‘Annual Trade’ sheet to the top and ‘Monthly Trade’ sheet to the bottom. Add a dashboard title to indicate the context of the visualisation. At the bottom of the charts, add a footnote to indicate notes for Chart 2 and the data source.| ![](./images/step34.png){#id .class width=100%}|
-|35| | ![](./images/step35.png){#id .class width=100%}|
+|35| Hide the worksheets and publish the dashboard to Tableau Public. Tweak the size of the dashboard to ensure that the visualisation can be view properly on desktop (at the very least).| ![](./images/step35.png){#id .class width=100%}|
 
 :::
 
 
-# 5 Major Observations
+# 5. Major Observations
 1. Overall insight
 2. 
 3. 
