@@ -103,6 +103,9 @@ The initial sketch of proposed design is as follow:
 # 3 Proposed Visualisation on Tableau
 Please view the proposed visualisation on Tableau Public [here](https://www.google.com/).
 
+![](./images/dashboard.png){#id .class width=100%}
+
+
 # 4 Step-By-Step Preparation
 ::: l-body
 |No| Step                | Action                                       |
@@ -137,10 +140,10 @@ Please view the proposed visualisation on Tableau Public [here](https://www.goog
 |28| Click on the X-axis and add a reference line using a constant value indicating 1 Jan 2020. Remove the label and reduce the thickness of the dotted line.| ![](./images/step28.png){#id .class width=100%}|
 |29| Remove the secondary axis, the legend for the area chart, the X-axis label and hide field labels for columns.| ![](./images/step29.png){#id .class width=100%}|
 |30| Edit the X-axis to start on 1/1/2019 and end after 1/12/2020. Fix minor tick marks to start of the month and major tick marks to start of the year. Remove the axis titles.| ![](./images/step30.png){#id .class width=100%}|
-|31| | ![](./images/step31.png){#id .class width=100%}|
-|32| | ![](./images/step32.png){#id .class width=100%}|
-|33| | ![](./images/step33.png){#id .class width=100%}|
-|34| | ![](./images/step34.png){#id .class width=100%}|
+|31| Edit the Y-axis scale to show currency in billions with 1 decimal place. Change the Axis Title to ‘Trade Value (Billions)’. Edit X-axis value format to show both month and year.| ![](./images/step31.png){#id .class width=100%}|
+|32| Bold the country values, Y-axis and X-axis values. Change the country values font size to 10. Add a title and subtitle to the chart.| ![](./images/step32.png){#id .class width=100%}|
+|33| Add annotation to points when exports hit the minimal value after declining drastically.| ![](./images/step33.png){#id .class width=100%}|
+|34| Create a ‘Dashboard’. Drag ‘Annual Trade’ sheet to the top and ‘Monthly Trade’ sheet to the bottom. Add a dashboard title to indicate the context of the visualisation. At the bottom of the charts, add a footnote to indicate notes for Chart 2 and the data source.| ![](./images/step34.png){#id .class width=100%}|
 |35| | ![](./images/step35.png){#id .class width=100%}|
 
 :::
