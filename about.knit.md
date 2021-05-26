@@ -1,0 +1,9 @@
+---
+title: "About this blog"
+description: |
+  This blog was created for the Singapore Management University, Masters of IT in Business, ISSS608: Visual Analytics module in AY2020/21 Term 3.
+---
+
+
+```{.r .distill-force-highlighting-css}
+```
