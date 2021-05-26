@@ -117,7 +117,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","images/cute.jpg","images/cute2.png","images/logo.png","images/originaldata.png","images/sketch.jpg","images/step1.png","images/step10.png","images/step11.png","images/step12.png","images/step13.png","images/step2.png","images/step3.png","images/step4.png","images/step5.png","images/step6.png","images/step7.png","images/step8.png","images/step9.png"]}
+  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","images/cute.jpg","images/cute2.png","images/logo.png","images/originaldata.png","images/sketch.jpg","images/step1.png","images/step10.png","images/step11.png","images/step12.png","images/step13.png","images/step14.png","images/step15.png","images/step16.png","images/step17.png","images/step18.png","images/step19.png","images/step2.png","images/step20.png","images/step21.png","images/step22.png","images/step23.png","images/step24.png","images/step25.png","images/step26.png","images/step27.png","images/step28.png","images/step29.png","images/step3.png","images/step30.png","images/step4.png","images/step5.png","images/step6.png","images/step7.png","images/step8.png","images/step9.png"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
 <meta name="distill:offset" content="../.."/>
@@ -2302,8 +2302,118 @@ document.addEventListener('DOMContentLoaded', function() {
 </tr>
 <tr class="odd">
 <td>13</td>
-<td>Create a new worksheet and drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to ‘Rows’ shelves.</td>
+<td>For Chart 1, create a new worksheet and name it “Annual Trade’. Drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to ‘Rows’ shelves.</td>
 <td><img src="images/step13.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Drag ‘Month’ to the ‘Filter Field’ section. Select ‘Range of Dates’ and indicate ‘1 Jan 2019’ as the start and ‘1 Dec 2020’ as the end.</td>
+<td><img src="images/step14.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Drag ‘Country’ to the ‘Filter Field’ section. Select the ‘Top’ tab and choose the top 6 by sum of ‘Trade Value’. Then exclude ‘Indonesia’ from the custom value list.</td>
+<td><img src="images/step15.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>Under ‘Marks’, select ‘Bar’ under the dropdown and drag ‘Trade Type’ to ‘Color’. Drag ‘Trade Value’ to ‘Label’ and add ‘Quick Table Calculation’ to add the ‘Percent of Total’ computed using ‘Cell’. Then drag ‘Trade Value’ to label again.</td>
+<td><img src="images/step16.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Sort ‘Country’ based on descending sum of ‘Trade Value’.</td>
+<td><img src="images/step17.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Click on the X-axis and add a reference line using the value of ‘SUM(Trade Value)’ at ‘Per Cell’ level. Remove the line.</td>
+<td><img src="images/step18.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Format the trade values shown using ‘Currency (Custom)’ with ‘Billions (B)’ as display unit at 1 decimal place. And format the percentage from total value to 1 decimal place.</td>
+<td><img src="images/step19.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Update the title to include a main active title and functional subtitle, colouring ‘Exports’ and ‘Imports’ aligning with the legend. Hide ‘Country / Month’. Add ‘(Billions)’ to ‘Trade Value’ label on the X-axis.</td>
+<td><img src="images/step20.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>For Chart 2, create a new worksheet and name it “Monthly Trade’. Drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to ‘Rows’ shelves. Sort ‘Country’ by descending sum of ‘Trade Value’ and change ‘Month’ to month with year format. Repeat Step 14 to set up the date and country filters.</td>
+<td><img src="images/step21.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Select ‘Area’ chart under ‘Marks’ and drag ‘Trade Type’ to ‘Color’. Then select ‘Analysis’ and switch ‘Stack Marks’ to ‘Off’.</td>
+<td><img src="images/step22.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>Under ‘Analysis’, select ‘Create Calculated Field’ to create a new variable called ‘Smaller Trade Value’ to select the minimum ‘Trade Value’ irrespective of ‘Trade Type’ based on each time period.</td>
+<td><img src="images/step23.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>Drag ‘Smaller Trade Value’ variable onto the ‘Trade Value’ axis to create a ‘combined axis’.</td>
+<td><img src="images/step24.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Drag ‘Measure Names’ from ‘Rows’ shelf to ‘Detail’ under ‘Marks’. Then click on the ‘Detail’ icon next to ‘Measure Names’ and change it to ‘Color’.</td>
+<td><img src="images/step25.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Click on ‘Colors’ under ‘Marks’ and edit the colours of the variables with ‘Smaller Trade Value’ to white. Change opacity to 100%.</td>
+<td><img src="images/step26.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Drag ‘Trade Value’ to the secondary axis on the chart. There will be a new section appearing under ‘Marks’. Change the chart type to ‘Line’ under the dropdown and remove ‘Measure Names’.</td>
+<td><img src="images/step27.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Click on the X-axis and add a reference line using a constant value indicating 1 Jan 2020. Remove the label and reduce the thickness of the dotted line.</td>
+<td><img src="images/step28.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>Remove the secondary axis, the legend for the area chart, the X-axis label and hide field labels for columns.</td>
+<td><img src="images/step29.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>30</td>
+<td>Edit the X-axis to start on 1/1/2019 and end after 1/12/2020. Fix minor tick marks to start of the month and major tick marks to start of the year. Remove the axis titles.</td>
+<td><img src="images/step30.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>31</td>
+<td></td>
+<td><img src="./images/step31.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>32</td>
+<td></td>
+<td><img src="./images/step32.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>33</td>
+<td></td>
+<td><img src="./images/step33.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>34</td>
+<td></td>
+<td><img src="./images/step34.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>35</td>
+<td></td>
+<td><img src="./images/step35.png" id="id" class="class" style="width:100.0%" /></td>
 </tr>
 </tbody>
 </table>

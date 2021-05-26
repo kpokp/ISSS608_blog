@@ -119,7 +119,30 @@ Please view the proposed visualisation on Tableau Public [here](https://www.goog
 |10| Split ‘Pivot1 Names’ and rename the field of ‘Split 1’ to ‘Trade Type’. Multiply ‘(Thousand Dollars)’ by 1000 and rename it ‘Trade Value’. Remove the unnecessary fields ‘(Thousand Dollars)’ and ‘Pivot1 Names’.| ![](./images/step10.png){#id .class width=100%}|
 |11| Create a ‘Output’ node after ‘Pivot 3’ node and save output as ‘Monthly Singapore Merchandise Trade’.| ![](./images/step11.png){#id .class width=100%}|
 |12| Set up a connection on Tableau Desktop to the ‘Monthly Singapore Merchandise Trade’ hyper’s extract.| ![](./images/step12.png){#id .class width=100%}|
-|13| Create a new worksheet and drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to 'Rows' shelves.| ![](./images/step13.png){#id .class width=100%}|
+|13| For Chart 1, create a new worksheet and name it “Annual Trade’. Drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to ‘Rows’ shelves.| ![](./images/step13.png){#id .class width=100%}|
+|14| Drag ‘Month’ to the ‘Filter Field’ section. Select ‘Range of Dates’ and indicate ‘1 Jan 2019’ as the start and ‘1 Dec 2020’ as the end.| ![](./images/step14.png){#id .class width=100%}|
+|15| Drag ‘Country’ to the ‘Filter Field’ section. Select the ‘Top’ tab and choose the top 6 by sum of ‘Trade Value’. Then exclude ‘Indonesia’ from the custom value list.| ![](./images/step15.png){#id .class width=100%}|
+|16| Under ‘Marks’, select ‘Bar’ under the dropdown and drag ‘Trade Type’ to ‘Color’. Drag ‘Trade Value’ to ‘Label’ and add ‘Quick Table Calculation’ to add the ‘Percent of Total’ computed using ‘Cell’. Then drag ‘Trade Value’ to label again.| ![](./images/step16.png){#id .class width=100%}|
+|17| Sort ‘Country’ based on descending sum of ‘Trade Value’.| ![](./images/step17.png){#id .class width=100%}|
+|18| Click on the X-axis and add a reference line using the value of ‘SUM(Trade Value)’ at ‘Per Cell’ level. Remove the line.| ![](./images/step18.png){#id .class width=100%}|
+|19| Format the trade values shown using ‘Currency (Custom)’ with ‘Billions (B)’ as display unit at 1 decimal place. And format the percentage from total value to 1 decimal place.| ![](./images/step19.png){#id .class width=100%}|
+|20| Update the title to include a main active title and functional subtitle, colouring ‘Exports’ and ‘Imports’ aligning with the legend. Hide ‘Country / Month’. Add ‘(Billions)’ to ‘Trade Value’ label on the X-axis.| ![](./images/step20.png){#id .class width=100%}|
+|21| For Chart 2, create a new worksheet and name it “Monthly Trade’. Drag ‘Country’ and ‘Month’ to ‘Columns’ and ‘Trade Value’ to ‘Rows’ shelves. Sort ‘Country’ by descending sum of ‘Trade Value’ and change ‘Month’ to month with year format. Repeat Step 14 to set up the date and country filters.| ![](./images/step21.png){#id .class width=100%}|
+|22| Select ‘Area’ chart under ‘Marks’ and drag ‘Trade Type’ to ‘Color’. Then select ‘Analysis’ and switch ‘Stack Marks’ to ‘Off’.| ![](./images/step22.png){#id .class width=100%}|
+|23| Under ‘Analysis’, select ‘Create Calculated Field’ to create a new variable called ‘Smaller Trade Value’ to select the minimum ‘Trade Value’ irrespective of ‘Trade Type’ based on each time period.| ![](./images/step23.png){#id .class width=100%}|
+|24| Drag ‘Smaller Trade Value’ variable onto the ‘Trade Value’ axis to create a ‘combined axis’.| ![](./images/step24.png){#id .class width=100%}|
+|25| Drag ‘Measure Names’ from ‘Rows’ shelf to ‘Detail’ under ‘Marks’. Then click on the ‘Detail’ icon next to ‘Measure Names’ and change it to ‘Color’.| ![](./images/step25.png){#id .class width=100%}|
+|26| Click on ‘Colors’ under ‘Marks’ and edit the colours of the variables with ‘Smaller Trade Value’ to white. Change opacity to 100%.| ![](./images/step26.png){#id .class width=100%}|
+|27| Drag ‘Trade Value’ to the secondary axis on the chart. There will be a new section appearing under ‘Marks’. Change the chart type to ‘Line’ under the dropdown and remove ‘Measure Names’.| ![](./images/step27.png){#id .class width=100%}|
+|28| Click on the X-axis and add a reference line using a constant value indicating 1 Jan 2020. Remove the label and reduce the thickness of the dotted line.| ![](./images/step28.png){#id .class width=100%}|
+|29| Remove the secondary axis, the legend for the area chart, the X-axis label and hide field labels for columns.| ![](./images/step29.png){#id .class width=100%}|
+|30| Edit the X-axis to start on 1/1/2019 and end after 1/12/2020. Fix minor tick marks to start of the month and major tick marks to start of the year. Remove the axis titles.| ![](./images/step30.png){#id .class width=100%}|
+|31| | ![](./images/step31.png){#id .class width=100%}|
+|32| | ![](./images/step32.png){#id .class width=100%}|
+|33| | ![](./images/step33.png){#id .class width=100%}|
+|34| | ![](./images/step34.png){#id .class width=100%}|
+|35| | ![](./images/step35.png){#id .class width=100%}|
+
 :::
 
 
