@@ -150,7 +150,7 @@ Please view the proposed visualisation on Tableau Public [here](https://public.t
 
 
 # 5. Major Observations
-1. Overall insight
-2. 
+1. Annual merchandise trade value between Singapore and major partners generally fell in 2020, except for Taiwan and Hong Kong. The dip year-on-year is the greatest for Malaysia, which registered a $9.5B decline, driven mainly by lower exports. The next biggest dip comes from United States, which registered a $2.6B year-on-year decline, which instead is driven by lower imports. 
+2. Us change from net importer to net exporter
 3. 
 
