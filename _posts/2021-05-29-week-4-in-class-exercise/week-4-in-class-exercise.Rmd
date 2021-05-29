@@ -27,4 +27,11 @@ Please view the interactive visualisation on Tableau Public [here](https://publi
 Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise3-QuadraticPlot/SalesProfit).
 
 ![](./images/QP.png){#id .class width=100%}
+![](./images/QP - Motion.png){#id .class width=100%}
+
+# 3. Coordinate View of English and Math Scores
+
+Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise3-CoordinateView/Dashboard1).
+
+![](./images/CV.png){#id .class width=100%}).
 
