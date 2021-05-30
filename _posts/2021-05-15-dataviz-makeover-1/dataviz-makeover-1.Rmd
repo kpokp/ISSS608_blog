@@ -1,5 +1,5 @@
 ---
-title: "DataViz Makeover 1 (Work in Progress)"
+title: "DataViz Makeover 1"
 description: |
   In this post, we present a trade data use case applying the fundamentals of Visual Analytics using Tableau. We will critique the visualisation and propose an alternative to address the flaws.
 preview: images/datavizmakeover1.png
@@ -49,7 +49,7 @@ The original visualisation is created by using data provided by Department of St
 
 
 ### 1.2 Aesthetic
-1. **Legend**: The legend is placed on the right side of the chart. Readers could not immediately identify if the blue or yellow area refer to export or import. 
+1. **Legend**: The legend is placed on the right side of the chart. Readers could not immediately identify if the blue or orange area refer to export or import. 
 2. **Title**: The main graphic title's font size is smaller than the subtitle for each chart and not centralized. 
 3. **Chart Order and Sizing**: There is no obvious logic in the ordering of the six charts. The chart widths vary. 
 4. **Axis Labels**: The axis labels for Y-axis and X-axis are repeated unnecessarily. 
@@ -70,8 +70,8 @@ The initial sketch of proposed design is as follow:
     + To rename the legend title to 'Trade Type'
 2. **Chart Type**: 
     + Opt for trellis charts to allow easy comparison across the partners with 1 primary Y-axis
-    + Add Chart 1, a bar chart to give readers an overview of how the 6 major trading partners are ranked based on annual total merchandise trade value and the changes in trade value year-on-year
-    + Chart 2 will be a modified version of the original visualisation in trellis format
+    + Add Chart 1, a bar chart to give readers an overview of how the 6 major trading partners are ranked based on annual total merchandise trade value and the split between export and import for each year
+    + Chart 2 will be a modified version of the original visualisation in trellis format to show the monthly trends of export and import trade. It will showcase if the partner was a net exporter or importer month-on-month.
 3. **Y-Axis**: 
     + Keep to a primary Y-axis 
     + Indicate the unit of measure '$X.XB' on the scales and indicate the granularity in the label '(Billions)'
@@ -79,13 +79,13 @@ The initial sketch of proposed design is as follow:
     + For Chart 2, indicate start of the year with 'Month' and 'Year' e.g. 'Jan'19' as major tick mark and every month as minor tick marks. Chart should not show 2021.
     + For Chart 2, add a reference line at start of 2020 to allow readers to easily compare between the monthly trends between 2019 and 2020
 5. **Annotation / Source**: 
-    + Add annotations to Chart 2 to highlight points that supports the insights
-    + Add data source at foot of visualisation
+    + Add annotations to both charts to highlight points that support the insights
+    + Add notes and data source at foot of visualisation to explain the shaded area of Chart 2
 
 
 ### 2.2 Aesthetic
 1. **Legend**: 
-    + As the legend position is kept on the side, change the font color of the word 'Export' to blue and 'Import' to dark yellow to guide readers.
+    + As the legend position is still kept on the top of the charts, change the font color of the word 'Export' to blue and 'Import' in the titles to orange to guide readers.
 2. **Title**:  
     + Align the titles to the left 
     + Choose distinctive font sizes for main visual title, chart title and chart subtitles
@@ -142,15 +142,22 @@ Please view the proposed visualisation on Tableau Public [here](https://public.t
 |30| Edit the X-axis to start on 1/1/2019 and end after 1/12/2020. Fix minor tick marks to start of the month and major tick marks to start of the year. Remove the axis titles.| ![](./images/step30.png){#id .class width=100%}|
 |31| Edit the Y-axis scale to show currency in billions with 1 decimal place. Change the Axis Title to ‘Trade Value (Billions)’. Edit X-axis value format to show both month and year.| ![](./images/step31.png){#id .class width=100%}|
 |32| Bold the country values, Y-axis and X-axis values. Change the country values font size to 10. Add a title and subtitle to the chart.| ![](./images/step32.png){#id .class width=100%}|
-|33| Add annotation to points when exports hit the minimal value after declining drastically.| ![](./images/step33.png){#id .class width=100%}|
+|33| Add annotation to points whereby there are interesting trends.| ![](./images/step33.png){#id .class width=100%}|
 |34| Create a ‘Dashboard’. Drag ‘Annual Trade’ sheet to the top and ‘Monthly Trade’ sheet to the bottom. Add a dashboard title to indicate the context of the visualisation. At the bottom of the charts, add a footnote to indicate notes for Chart 2 and the data source.| ![](./images/step34.png){#id .class width=100%}|
-|35| Hide the worksheets and publish the dashboard to Tableau Public. Tweak the size of the dashboard to ensure that the visualisation can be view properly on desktop (at the very least).| ![](./images/step35.png){#id .class width=100%}|
+|35| Hide the worksheets and publish the dashboard to Tableau Public. Tweak the size of the dashboard to ensure that the visualisation can be view properly.| ![](./images/step35.png){#id .class width=100%}|
 
 :::
 
 
 # 5. Major Observations
-1. Annual merchandise trade value between Singapore and major partners generally fell in 2020, except for Taiwan and Hong Kong. The dip year-on-year is the greatest for Malaysia, which registered a $9.5B decline, driven mainly by lower exports. The next biggest dip comes from United States, which registered a $2.6B year-on-year decline, which instead is driven by lower imports. 
-2. Us change from net importer to net exporter
-3. 
+1. **Annual Trade**: Annual merchandise trade value between Singapore and major partners fell in 2020, except for Taiwan and Hong Kong which grew 13% and 6% year-on-year. The dip year-on-year is the greatest for Malaysia, registering a $9.5B decline driven mainly by lower exports. The next biggest dip came from United States, which registered $2.6B year-on-year decline, which instead is driven by lower imports. 
+2. **Mainland China**: The monthly trends showed that the trade decline with Mainland China in 2020 was due to a sharp dip in Feb'20 for both export and import trade. This coincided with the COVID-19 lock down in Mainland China which started in end Jan'20. Trade between Singapore and Mainland China bounced back in Mar'20. Export to China continued to grow and reached a new high at $8.0B in Aug'20 before hovering at $7.0B per month thereafter. 
+3. **Malaysia**: Trade to Malaysia for both export and import saw a sharp dip in Apr'20. This coincided with the start of Singapore's Circuit Breaker period. Import started to recover in May'20 and hovered around $5.0B/month in later half of 2020. Export only recovered in Jun'20, when Singapore entered Phase 1. However, export to Malayisa hovered around $4.0B/month in later half of 2020, failing to recover to 2019 levels. Based on [Enterprise Singapore's](https://www.enterprisesg.gov.sg/-/media/esg/files/media-centre/media-releases/2020/may-2020/monthly-trade-report---apr-2020.pdf?la=enn) media release, lower exports to Malaysia was partially due to lower oil domestic exports.
+4. **United Stated**: Export to United States started to outgrow import in Apr'20 and persisted through most of 2020. This is due to both higher export and lower import. Export to United States remained volatile, seeing large swings across 2020. According to [Enterprise Singapore](https://www.enterprisesg.gov.sg/-/media/esg/files/media-centre/media-releases/2020/may-2020/monthly-trade-report---apr-2020.pdf?la=en), NODX export to US in Apr'20 was led by non-monetary gold, food preparations and disk media products.
+5. **Taiwan and Hong Kong**: Taiwan continued to be a net import trade partner and Hong Kong a net export trade partner.
+6. **Japan**: Export to Japan exceeded import briefly starting in Apr'20, mainly due to lower imports. Japan returned to being a net import partner in Sep'20. 
+
+
+
+ 
 
