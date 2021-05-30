@@ -67,7 +67,6 @@ The initial sketch of proposed design is as follow:
     + To add a main visual title to give readers the context - 'Singapore's Merchandise Trade with Major Partners'
     + To have a title for each chart that showcases the main insight. 
     + To add a functional subtitle for each chart. It should identify the granularity of the data, the unit of measure for the Y-Axis and the period covered. 
-    + To rename the legend title to 'Trade Type'
 2. **Chart Type**: 
     + Opt for trellis charts to allow easy comparison across the partners with 1 primary Y-axis
     + Add Chart 1, a bar chart to give readers an overview of how the 6 major trading partners are ranked based on annual total merchandise trade value and the split between export and import for each year
@@ -85,7 +84,7 @@ The initial sketch of proposed design is as follow:
 
 ### 2.2 Aesthetic
 1. **Legend**: 
-    + As the legend position is still kept on the top of the charts, change the font color of the word 'Export' to blue and 'Import' in the titles to orange to guide readers.
+    + Remove the need for a legend by changing the font color of the word 'Export' to blue and 'Import' in the functional titles to orange to guide readers.
 2. **Title**:  
     + Align the titles to the left 
     + Choose distinctive font sizes for main visual title, chart title and chart subtitles
