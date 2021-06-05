@@ -7,3 +7,5 @@ description: |
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+If you are interested in the contents of Visual Analytics module conducted by [Dr. Kam Tin Seong](https://faculty.smu.edu.sg/profile/kam-tin-seong-486), please refer to the [course website](https://isss608.netlify.app/).
