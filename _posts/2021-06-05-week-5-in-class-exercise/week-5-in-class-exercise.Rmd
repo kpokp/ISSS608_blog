@@ -38,4 +38,4 @@ Please view the interactive visualisation on Tableau Public [here](https://publi
 
 Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise5-CandlestickChart/Candlestick).
 
-![](./images/candlestick.png){#id .class width=100%}Chart
+![](./images/candlestick.png){#id .class width=100%}
