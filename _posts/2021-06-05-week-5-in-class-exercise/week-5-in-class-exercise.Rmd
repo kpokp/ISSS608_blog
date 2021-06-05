@@ -1,0 +1,41 @@
+---
+title: "TIL: Week 5 In-Class Exercise"
+description: |
+  Today I learnt in class this week: How to build a bar chart and dot plot  to visualize uncertainty, a control chart to monitor sales and a candlestick chart for share prices in Tableau.
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+date: 06-05-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# 1. Bar Chart of Reproducible Research
+
+Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise4-VisualizeUncertainty/BarChart).
+
+![](./images/barchart.png){#id .class width=100%}
+
+# 2. Dot Plot of Reproducible Research
+
+Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise4-VisualizeUncertainty/DotPlot).
+
+![](./images/dotplot.png){#id .class width=100%}
+
+# 3. Control Chart of Weekly Sales
+
+Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise5-ControlChart/ControlChart).
+
+![](./images/controlchart.png){#id .class width=100%}
+
+# 4. Candlestick Chart of Share Price
+
+Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise5-CandlestickChart/Candlestick).
+
+![](./images/candlestickchart.png){#id .class width=100%}Chart
