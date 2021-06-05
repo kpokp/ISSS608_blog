@@ -34,8 +34,8 @@ Please view the interactive visualisation on Tableau Public [here](https://publi
 
 ![](./images/controlchart.png){#id .class width=100%}
 
-# 4. Candlestick Chart of Share Price
+# 4. Candlestick Chart of Share Price of Singapore Local Banks
 
 Please view the interactive visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/In-ClassExercise5-CandlestickChart/Candlestick).
 
-![](./images/candlestickchart.png){#id .class width=100%}Chart
+![](./images/candlestick.png){#id .class width=100%}Chart
