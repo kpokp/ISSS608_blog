@@ -78,14 +78,15 @@ The charts in the proposed design will help to answer some of the questions:
 
 ### 2.1 Clarity
 1. **Size of Bubbles**: 
-    + Fix the size of the bubbles and add a legend to indicate the unit of measurement 'Annual Total Trade Value'
+    + Fix the size of the bubbles and add a legend to indicate the unit of measurement 'Annual Total Trade' and a note to bring it up for reader's attention.
 2. **Geographical Level**: 
     + Select the top 10 trade partners ranked by trade value at country and administrative zone level, which will exclude EU and include Germany.
 3. **Y-Axis & X-Axis**: 
     + Include labels 'Import Value' and 'Export Value' as headers for the axes and indicate the unit '$X.XB' with tick marks for the bubble chart.
+    + Both axes in rank chart will given more prominent tick marks for sufficient data inking.
 4. **Footnotes**: 
-    + We have removed redundant footnote and chose not to annotate highlights of changes in trade performance of partners over the year to keep the design neat.
-    + We will eliminate the uncertainty of the net importer and net exporter status with a separate chart that shows the ranks of partners by total trade value, net importer and net exporter status
+    + We will eliminate the uncertainty of the net importer and net exporter status with a separate chart that shows the ranks of partners by total trade value, net importer and net exporter status.
+    + We have removed redundant footnote and chose not to annotate highlights of changes in trade performance of partners over the year to keep the design neat. Dynamic tooltips with relevant information for each year are added to both charts.
     + We will include all historical export and import values and balance of trade figures of each partner under the tooltip function. This will aid readers who want to find out more about each market while not create clutter in the visualisation.
 5. **Title**: 
     + Include a main dashboard title to set the context
@@ -96,8 +97,8 @@ The charts in the proposed design will help to answer some of the questions:
 1. **Legend**: 
     + Legends and notes that carry key information are placed on the left of the dashboard so that reader can quickly pick up the key information required when reading the bubble chart
 2. **Colours and Labels**: 
-    + Different colours are being used for each partners for the purpose of recognizing the trail of historical values in both charts as the visualization animates
-    + Each bubble will retain the label with the name of the partner and total trade value of the year
+    + Different colours are being used for each partners for the purpose of recognizing the trail of historical values in both charts as the visualisation animates.
+    + Each bubble will retain the label with the name of the partner and total trade value of the year for easy reference.
     + Colours are chosen for each partner based on their geographical region, e.g. South East Asia markets like Thailand, Malaysia and Indonesia will adopt green hues, East Asia markets like Mainland China, Hong Kong, Japan, Taiwan, and Korea will adopt pink and purple hues. Germany and United States will adopt grey and brown respectively to distinguish themselves from the rest.
     + Import value and net importers will be represented by orange and export value and net exporters will be represented by blue so that they can be easily distinguished by color blind readers.
 3. **Opacity**: 
