@@ -63,9 +63,18 @@ The original visualisation (Figure 1) is created by Department of Statistics, Si
 ![Figure 6: Ambiguity in EU trade status](./images/eu.png){#id .class width=50%}
 
 # 2. Proposed Design
-The initial sketch of proposed design is as follow (Figure 7):
+The initial sketch of proposed design is as follow (Figure 7).
 
 ![Figure 7: Sketch of proposed visualisation](./images/sketch.jpeg)
+The charts in the proposed design will help to answer some of the questions:
+
+- Who is Singapore's top trading partner? Did this change over the years?
+- Who is the top net importer? Did this change over the years?
+- Who is the top net exporter? Did this change over the years?
+- Which partner has its trade value grown over the years? Is this driven by export or import?
+- Which partner has its trade value shrunk over the years? Is this driven by export or import?
+- How have the export and import trade value of each partner change over the years? 
+
 
 ### 2.1 Clarity
 1. **Size of Bubbles**: 
@@ -75,9 +84,9 @@ The initial sketch of proposed design is as follow (Figure 7):
 3. **Y-Axis & X-Axis**: 
     + Include labels 'Import Value' and 'Export Value' as headers for the axes and indicate the unit '$X.XB' with tick marks for the bubble chart.
 4. **Footnotes**: 
-    + Remove redundant footnote and annotate highlights of changes in trade performance of partners over the year
-    + Eliminate the uncertainty of the net importer and net exporter status with a separate chart that shows the ranks of partners by total trade value, net importer and net exporter status
-    + Historical export and import values and balance of trade figures of each partner could also be displayed when readers want to find out more about each market using tooltip function to not clutter the visualization
+    + We have removed redundant footnote and chose not to annotate highlights of changes in trade performance of partners over the year to keep the design neat.
+    + We will eliminate the uncertainty of the net importer and net exporter status with a separate chart that shows the ranks of partners by total trade value, net importer and net exporter status
+    + We will include all historical export and import values and balance of trade figures of each partner under the tooltip function. This will aid readers who want to find out more about each market while not create clutter in the visualisation.
 5. **Title**: 
     + Include a main dashboard title to set the context
     + Add title with key insight and a functional title with reference to the axes and granularity of the data
@@ -89,10 +98,10 @@ The initial sketch of proposed design is as follow (Figure 7):
 2. **Colours and Labels**: 
     + Different colours are being used for each partners for the purpose of recognizing the trail of historical values in both charts as the visualization animates
     + Each bubble will retain the label with the name of the partner and total trade value of the year
-    + Colours are chosen for each partner based on their geographical region, e.g. South East Asia markets like Thailand, Malaysia and Indonesia will adopt green hues, East Asia markets like Mainland China, Hong Kong, Japan, Taiwan, and Korea will adopt pink and purple hues. Germany and United States will adopt grey and brown respectively to distinguish themselves from the rest
-    + Import value and net importers will be represented by orange and export value and net exporters will be represented by blue so that they can be easily distinguished by color blind readers
+    + Colours are chosen for each partner based on their geographical region, e.g. South East Asia markets like Thailand, Malaysia and Indonesia will adopt green hues, East Asia markets like Mainland China, Hong Kong, Japan, Taiwan, and Korea will adopt pink and purple hues. Germany and United States will adopt grey and brown respectively to distinguish themselves from the rest.
+    + Import value and net importers will be represented by orange and export value and net exporters will be represented by blue so that they can be easily distinguished by color blind readers.
 3. **Opacity**: 
-    + Bubbles will be semi-transparent with white borders for readers to see the sizes clearly
+    + Bubbles will be semi-transparent with white borders for readers to see the sizes clearly.
 
 # 3. Proposed Visualisation on Tableau
 Please view the proposed visualisation on Tableau Public [here](https://public.tableau.com/app/profile/kelly2850/viz/DatavizMakeover2_16241730883380/Dashboard).
