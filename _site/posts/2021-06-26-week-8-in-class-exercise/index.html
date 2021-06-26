@@ -117,7 +117,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["week-8-in-class-exercise_files/anchor-4.2.2/anchor.min.js","week-8-in-class-exercise_files/bowser-1.9.3/bowser.min.js","week-8-in-class-exercise_files/distill-2.2.21/template.v2.js","week-8-in-class-exercise_files/header-attrs-2.8/header-attrs.js","week-8-in-class-exercise_files/jquery-1.11.3/jquery.min.js","week-8-in-class-exercise_files/popper-2.6.0/popper.min.js","week-8-in-class-exercise_files/tippy-6.2.7/tippy-bundle.umd.min.js","week-8-in-class-exercise_files/tippy-6.2.7/tippy-light-border.css","week-8-in-class-exercise_files/tippy-6.2.7/tippy.css","week-8-in-class-exercise_files/tippy-6.2.7/tippy.umd.min.js","week-8-in-class-exercise_files/webcomponents-2.0.0/webcomponents.js"]}
+  {"type":"character","attributes":{},"value":["data/Exam_data.csv","week-8-in-class-exercise_files/anchor-4.2.2/anchor.min.js","week-8-in-class-exercise_files/bowser-1.9.3/bowser.min.js","week-8-in-class-exercise_files/distill-2.2.21/template.v2.js","week-8-in-class-exercise_files/header-attrs-2.8/header-attrs.js","week-8-in-class-exercise_files/jquery-1.11.3/jquery.min.js","week-8-in-class-exercise_files/popper-2.6.0/popper.min.js","week-8-in-class-exercise_files/tippy-6.2.7/tippy-bundle.umd.min.js","week-8-in-class-exercise_files/tippy-6.2.7/tippy-light-border.css","week-8-in-class-exercise_files/tippy-6.2.7/tippy.css","week-8-in-class-exercise_files/tippy-6.2.7/tippy.umd.min.js","week-8-in-class-exercise_files/webcomponents-2.0.0/webcomponents.js"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
 <meta name="distill:offset" content="../.."/>
@@ -2112,7 +2112,39 @@ document.addEventListener('DOMContentLoaded', function() {
 </code></pre>
 </div>
 </div>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<h3 id="import-data-from-csv-and-preview-data">Import data from csv and preview data</h3>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>exam_data</span> <span class='op'>&lt;-</span> <span class='fu'>read_csv</span><span class='op'>(</span><span class='st'>"data/Exam_data.csv"</span><span class='op'>)</span>
+
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='va'>exam_data</span>,<span class='fl'>10</span><span class='op'>)</span>
+</code></pre>
+</div>
+<pre><code># A tibble: 10 x 7
+   ID         CLASS GENDER RACE    ENGLISH MATHS SCIENCE
+   &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+ 1 Student321 3I    Male   Malay        21     9      15
+ 2 Student305 3I    Female Malay        24    22      16
+ 3 Student289 3H    Male   Chinese      26    16      16
+ 4 Student227 3F    Male   Chinese      27    77      31
+ 5 Student318 3I    Male   Malay        27    11      25
+ 6 Student306 3I    Female Malay        31    16      16
+ 7 Student313 3I    Male   Chinese      31    21      25
+ 8 Student316 3I    Male   Malay        31    18      27
+ 9 Student312 3I    Male   Malay        33    19      15
+10 Student297 3H    Male   Indian       34    49      37</code></pre>
+</div>
+<p>The dataset is made up of 7 variables:</p>
+<ul>
+<li><code>ID</code> is the unique key for each student</li>
+<li><code>CLASS</code>, <code>GENDER</code>, <code>RACE</code> are character variables</li>
+<li><code>ENGLISH</code>, <code>MATHS</code>, <code>SCIENCE</code> defined as numeric values with decimal points are scores of each subject</li>
+</ul>
+<h3 id="section"></h3>
+<div class="layout-chunk" data-layout="l-body">
+
+</div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

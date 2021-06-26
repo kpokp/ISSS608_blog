@@ -30,6 +30,20 @@ for (p in packages) {
   library(p, character.only = T)
 }
 ```
+### Import data from csv and preview data
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+exam_data <- read_csv("data/Exam_data.csv")
 
+head(exam_data,10)
+```
 
+The dataset is made up of 7 variables:
 
+- `ID` is the unique key for each student
+- `CLASS`, `GENDER`, `RACE` are character variables
+- `ENGLISH`, `MATHS`, `SCIENCE` defined as numeric values with decimal points are scores of each subject
+
+### 
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
