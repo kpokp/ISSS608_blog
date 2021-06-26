@@ -1,0 +1,35 @@
+---
+title: "TIL: Week 8 In-Class Exercise"
+description: |
+   Today I learnt in class: We start learning about interactive visualization using R. Tidyverse will be used to create the data science workflow. 
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+preview: images/__.png
+date: 06-26-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Install the necessary packages if they are not in library
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+packages = c('DT','ggiraph','plotly','tidyverse')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+
+
