@@ -1,7 +1,8 @@
 ---
 title: "TIL: Week 4 In-Class Exercise"
 description: |
-  Today I learnt in class this week: How to build an interactive Age-Sex Pyramid and Sales & Profit Quadratic Plot in Tableau.
+  Today I learnt in class: How to build an interactive Age-Sex Pyramid and Sales & Profit Quadratic Plot in Tableau.
+preview: images/QP.png  
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/

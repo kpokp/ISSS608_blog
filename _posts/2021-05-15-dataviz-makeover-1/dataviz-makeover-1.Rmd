@@ -2,7 +2,7 @@
 title: "DataViz Makeover 1"
 description: |
   In this post, we present a trade data use case applying the fundamentals of Visual Analytics using Tableau. We will critique the visualisation and propose an alternative to address the flaws.
-preview: images/datavizmakeover1.png
+preview: images/dashboard.png
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/

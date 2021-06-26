@@ -1,7 +1,8 @@
 ---
 title: "TIL: Week 5 In-Class Exercise"
 description: |
-  Today I learnt in class this week: How to build a bar chart and dot plot  to visualize uncertainty, a control chart to monitor sales and a candlestick chart for share prices in Tableau.
+  Today I learnt in class: How to build a bar chart and dot plot  to visualize uncertainty, a control chart to monitor sales and a candlestick chart for share prices in Tableau.
+preview: images/candlestick.png  
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/
