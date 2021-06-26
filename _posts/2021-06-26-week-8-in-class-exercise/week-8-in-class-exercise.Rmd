@@ -47,18 +47,32 @@ The dataset is made up of 7 variables with 322 observations:
 - `CLASS`, `GENDER`, `RACE` are categorical variables expressed as character
 - `ENGLISH`, `MATHS`, `SCIENCE` are continuous variables defined as numeric values with decimal points 
 
-### Plot histogram of the Math scores by Gender
+### Plot histogram of the Math scores
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-math_hist <- ggplot(data = exam_data, aes(x = MATHS, fill = GENDER)) +
-  geom_histogram(bins = 10,
-                 boundary = 100,
+math_hist <- ggplot(data = exam_data, aes(x = MATHS)) +
+  geom_histogram(bins = 20,
+                 boundary = 50,
                  color = "black",
-                 position = "stack"
+                 fill = "light blue"
                  ) +
-  scale_x_continuous("MATHS", limits = c(0,100), breaks = seq(0,100,10)) +
+  scale_x_continuous("MATHS", limits = c(0,100), breaks = seq(0,100,5)) +
   ggtitle("Distribution of Math Scores")
 
 ggplotly(math_hist)
+
+```
+
+### Plot histogram of the math scores by gender
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_hist2 <- ggplot(data = exam_data, aes(x = MATHS, fill = GENDER)) +
+  geom_histogram(bins = 20,
+                 boundary = 50,
+                 color = "grey30",
+                 position = "stack"
+                 ) +
+  ggtitle("Distribution of Math Scores by Gender")
+
+ggplotly(math_hist2)
 
 ```
 
@@ -72,7 +86,7 @@ ggplotly(race_bar)
 
 ```
 
-### Plot dotplot of Math Scores by Race
+### Plot dotplot of math scores by race
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 math_dot <- ggplot(data = exam_data, 
                    aes(x = MATHS, fill = RACE)) +
@@ -84,5 +98,40 @@ math_dot <- ggplot(data = exam_data,
   ggtitle("Distribution of Math Scores")
 
 math_dot
+
+```
+
+### Plot boxplot of math scores by gender
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_box <- ggplot(data = exam_data, 
+                   aes(y = MATHS, x = GENDER)) +
+  geom_boxplot() +
+  geom_point(position="jitter",
+             size = 0.5) +
+  ggtitle("Distribution of Math Scores by Gender")
+
+ggplotly(math_box)
+
+```
+
+### Plot interactive dotplot of math scores by gender
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_dot_interactive <- ggplot(data = exam_data, 
+                   aes(x = MATHS, fill = RACE)) +
+  geom_dotplot_interactive(
+              aes(tooltip = ID),
+              method = "histodot",
+              binwidth = 2.5,
+              dotsize = 0.5,
+              stackgroups = TRUE) +
+  scale_y_continuous(NULL, 
+                     breaks = NULL) +
+  ggtitle("Distribution of Math Scores by Race")
+
+girafe(
+  ggobj = math_dot_interactive,
+  width_svg = 6,
+  height_svg = 6*0.618
+)
 
 ```
