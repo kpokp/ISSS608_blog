@@ -99,7 +99,7 @@ math_dot <- ggplot(data = exam_data,
                stackgroups = TRUE) +
   scale_y_continuous(NULL, 
                      breaks = NULL) +
-  ggtitle("Distribution of Math Scores")
+  ggtitle("Distribution of Math Scores by Race")
 
 math_dot
 
@@ -124,7 +124,7 @@ ggplotly(math_box)
 - Onclick
 - Data_id
 
-### Plot interactive dotplot of math scores by gender using ggiraph
+### Plot interactive dotplot of math scores by gender using ggiraph tooltip
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 math_dot_interactive <- ggplot(data = exam_data, 
                    aes(x = MATHS, fill = RACE)) +
@@ -137,6 +137,27 @@ math_dot_interactive <- ggplot(data = exam_data,
   scale_y_continuous(NULL, 
                      breaks = NULL) +
   ggtitle("Distribution of Math Scores by Race")
+
+girafe(
+  ggobj = math_dot_interactive,
+  width_svg = 6,
+  height_svg = 6*0.618
+)
+
+```
+
+### Plot interactive dotplot of math scores using ggiraph data_id
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_dot_interactive <- ggplot(data = exam_data, 
+                   aes(x = MATHS)) +
+  geom_dotplot_interactive(
+              aes(data_id = CLASS, tooltip = CLASS),
+              method = "histodot",
+              binwidth = 1,
+              stackgroups = TRUE) +
+  scale_y_continuous(NULL, 
+                     breaks = NULL) +
+  ggtitle("Distribution of Math Scores by Class")
 
 girafe(
   ggobj = math_dot_interactive,
