@@ -35,9 +35,10 @@ for (p in packages) {
 exam_data <- read_csv("data/Exam_data.csv")
 
 head(exam_data,10)
+summary(exam_data)
 ```
 
-The dataset is made up of 7 variables:
+The dataset is made up of 7 variables with 322 observations:
 
 - `ID` is the unique key for each student
 - `CLASS`, `GENDER`, `RACE` are character variables

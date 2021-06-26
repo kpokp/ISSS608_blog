@@ -2133,8 +2133,26 @@ document.addEventListener('DOMContentLoaded', function() {
  8 Student316 3I    Male   Malay        31    18      27
  9 Student312 3I    Male   Malay        33    19      15
 10 Student297 3H    Male   Indian       34    49      37</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span><span class='op'>(</span><span class='va'>exam_data</span><span class='op'>)</span>
+</code></pre>
 </div>
-<p>The dataset is made up of 7 variables:</p>
+<pre><code>      ID               CLASS              GENDER         
+ Length:322         Length:322         Length:322        
+ Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character  
+                                                         
+                                                         
+                                                         
+     RACE              ENGLISH          MATHS          SCIENCE     
+ Length:322         Min.   :21.00   Min.   : 9.00   Min.   :15.00  
+ Class :character   1st Qu.:59.00   1st Qu.:58.00   1st Qu.:49.25  
+ Mode  :character   Median :70.00   Median :74.00   Median :65.00  
+                    Mean   :67.18   Mean   :69.33   Mean   :61.16  
+                    3rd Qu.:78.00   3rd Qu.:85.00   3rd Qu.:74.75  
+                    Max.   :96.00   Max.   :99.00   Max.   :96.00  </code></pre>
+</div>
+<p>The dataset is made up of 7 variables with 322 observations:</p>
 <ul>
 <li><code>ID</code> is the unique key for each student</li>
 <li><code>CLASS</code>, <code>GENDER</code>, <code>RACE</code> are character variables</li>
@@ -2144,7 +2162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="layout-chunk" data-layout="l-body">
 
 </div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
