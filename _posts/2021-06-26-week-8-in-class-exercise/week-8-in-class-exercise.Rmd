@@ -11,6 +11,9 @@ preview: images/__.png
 date: 06-26-2021
 output:
   distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
     self_contained: false
 ---
 
@@ -41,10 +44,45 @@ summary(exam_data)
 The dataset is made up of 7 variables with 322 observations:
 
 - `ID` is the unique key for each student
-- `CLASS`, `GENDER`, `RACE` are character variables
-- `ENGLISH`, `MATHS`, `SCIENCE` defined as numeric values with decimal points are scores of each subject
+- `CLASS`, `GENDER`, `RACE` are categorical variables expressed as character
+- `ENGLISH`, `MATHS`, `SCIENCE` are continuous variables defined as numeric values with decimal points 
 
-### 
+### Plot histogram of the Math scores by Gender
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_hist <- ggplot(data = exam_data, aes(x = MATHS, fill = GENDER)) +
+  geom_histogram(bins = 10,
+                 boundary = 100,
+                 color = "black",
+                 position = "stack"
+                 ) +
+  scale_x_continuous("MATHS", limits = c(0,100), breaks = seq(0,100,10)) +
+  ggtitle("Distribution of Math Scores")
+
+ggplotly(math_hist)
+
+```
+
+### Plot bar chart of race
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+race_bar <- ggplot(data = exam_data, aes(x = RACE)) +
+  geom_bar() +
+  ggtitle("Distribution of Race")
+
+ggplotly(race_bar)
+
+```
+
+### Plot dotplot of Math Scores by Race
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+math_dot <- ggplot(data = exam_data, 
+                   aes(x = MATHS, fill = RACE)) +
+  geom_dotplot(binwidth = 2.5,
+               dotsize = 0.5,
+               stackgroups = TRUE) +
+  scale_y_continuous(NULL, 
+                     breaks = NULL) +
+  ggtitle("Distribution of Math Scores")
+
+math_dot
 
 ```

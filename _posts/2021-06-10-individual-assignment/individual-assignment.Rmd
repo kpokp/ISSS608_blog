@@ -1,0 +1,186 @@
+---
+title: "Individual Assignment (WIP)"
+description: |
+  Student hard at work. Check back next time. 
+preview: images/wip.png
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: 06-10-2021
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+# Background
+
+## Vast Challenge 2021 - The Kronos Incident
+In the roughly twenty years that Tethys-based GAStech has been operating a natural gas production site in the island country of Kronos, it has produced remarkable profits and developed strong relationships with the government of Kronos. However, GAStech has not been as successful in demonstrating environmental stewardship.
+
+In January, 2014, the leaders of GAStech are celebrating their new-found fortune as a result of the initial public offering of their very successful company. In the midst of this celebration, several employees of GAStech go missing. An organization known as the Protectors of Kronos (POK) is suspected in the disappearance, but things may not be what they seem.
+
+## Mini Challenge 2 Background
+GAStech provides many of their employees with company cars for their personal and professional use, but unbeknownst to the employees, the cars are equipped with GPS tracking devices. We are given tracking data for the two weeks leading up to the disappearance, as well as credit card transactions and loyalty card usage data. From this data, we would identify anomalies and suspicious behaviors and identify which people use which credit and loyalty cards.
+
+# Methodology and Dashboard Design
+
+## Methodology
+
+### Segmenting Points of Interest
+
+### Understand the Spend 
+
+### Understand the Paths
+
+### Overall Visualization Design Concepts
+
+## Visualization Design
+
+### Popular Locations Based on Credit Card and Loyalty Card Data
+
+###
+
+
+# Insights and Conlusions
+
+## Question 1 
+Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words. 
+
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| text| ![](./images/Q1_1.png){#id .class width=100%}|
+|2| text| ![](./images/Q1_2.png){#id .class width=100%}|
+|3| text| ![](./images/Q1_3.png){#id .class width=100%}|
+|4| text| ![](./images/Q1_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q1_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q1_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q1_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q1_8.png){#id .class width=100%}|
+:::
+
+## Question 2
+Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
+
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| text| ![](./images/Q2_1.png){#id .class width=100%}|
+|2| text| ![](./images/Q2_2.png){#id .class width=100%}|
+|3| text| ![](./images/Q2_3.png){#id .class width=100%}|
+|4| text| ![](./images/Q2_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q2_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q2_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q2_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q2_8.png){#id .class width=100%}|
+:::
+
+## Question 3
+Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
+
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| text| ![](./images/Q3_1.png){#id .class width=100%}|
+|2| text| ![](./images/Q3_2.png){#id .class width=100%}|
+|3| text| ![](./images/Q3_3.png){#id .class width=100%}|
+|4| text| ![](./images/Q3_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q3_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q3_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q3_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q3_8.png){#id .class width=100%}|
+:::
+
+## Question 4
+Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
+
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| text| ![](./images/Q4_1.png){#id .class width=100%}|
+|2| text| ![](./images/Q4_2.png){#id .class width=100%}|
+|3| text| ![](./images/Q4_3.png){#id .class width=100%}|
+|4| text| ![](./images/Q4_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q4_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q4_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q4_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q4_8.png){#id .class width=100%}|
+:::
+
+## Question 5
+Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.
+
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| text| ![](./images/Q5_1.png){#id .class width=100%}|
+|2| text| ![](./images/Q5_2.png){#id .class width=100%}|
+|3| text| ![](./images/Q5_3.png){#id .class width=100%}|
+|4| text| ![](./images/Q5_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q5_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q5_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q5_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q5_8.png){#id .class width=100%}|
+|9| text| ![](./images/Q5_9.png){#id .class width=100%}|
+|10| text| ![](./images/Q5_10.png){#id .class width=100%}|
+:::
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Installing and loading necessary packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate)
+
+```
+
+```{r}
+
+# Adding jpeg file into environment
+mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
+
+# Adding gps data
+gps <- readr::read_csv("data/gps.csv")
+assignments <- readr::read_csv("data/car-assignments.csv")
+
+# Merge car assignments to gps data
+gps_name <- left_join(gps,assignments, by = c("id" = "CarID"))
+
+# Changing timestamp in gps to just date
+gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%d/%m/%Y  %H:%M:%S")
+
+# Mapping map and gps together specifically for CarID #1
+mapping <- ggplot(gps_name %>%
+                    filter(id == "1"),
+                  aes(long, lat)) +
+  annotation_custom(rasterGrob(mc2,
+    width = unit(1, "npc"),
+    height = unit(1,"npc")),
+  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+  geom_point(size = 0.1) + 
+  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + 
+
+# Fixing the scales regardless of filtering of points
+  theme_bw() + theme(panel.border = element_blank(),
+# Remove background and grids and reformat scales and axis
+                     panel.grid.major = element_blank(), 
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))  
+ 
+mapping
+
+
+```
+
+
+
+
+
+
+
+
