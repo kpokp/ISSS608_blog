@@ -7,7 +7,7 @@ author:
     url: https://www.linkedin.com/in/kellykkw/
     affiliation: School of Computing and Information Systems, Singapore Management University
     affiliation_url: https://scis.smu.edu.sg/
-preview: images/__.png
+preview: math_dot_interactive
 date: 06-26-2021
 output:
   distill::distill_article:
@@ -21,6 +21,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Install packages and loading data
 
 ### Install the necessary packages if they are not in library
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
@@ -46,6 +48,8 @@ The dataset is made up of 7 variables with 322 observations:
 - `ID` is the unique key for each student
 - `CLASS`, `GENDER`, `RACE` are categorical variables expressed as character
 - `ENGLISH`, `MATHS`, `SCIENCE` are continuous variables defined as numeric values with decimal points 
+
+## Basic charts using ggplot
 
 ### Plot histogram of the Math scores
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
@@ -114,7 +118,13 @@ ggplotly(math_box)
 
 ```
 
-### Plot interactive dotplot of math scores by gender
+## Interactivity ggplot using ggiraph
+
+- Tooltip
+- Onclick
+- Data_id
+
+### Plot interactive dotplot of math scores by gender using ggiraph
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 math_dot_interactive <- ggplot(data = exam_data, 
                    aes(x = MATHS, fill = RACE)) +
@@ -135,3 +145,4 @@ girafe(
 )
 
 ```
+
