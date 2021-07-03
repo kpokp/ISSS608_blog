@@ -1,0 +1,66 @@
+---
+title: "DataViz Makeover 3"
+  In this post, we look into the COVID-19 situation in Jakarta, Indonesia. We will critique the visualisation and propose an interative alternative that can showcase the data's uncertainty.
+draft: TRUE
+preview: images/dashboard.png
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# 1. Critique of Visualisation
+The original visualizations (Figure 1 and 2) are prepared by a data journalist to support the news write-up of the latest COVID-19 situation in DKI Jakarta. The data behind the visualization is from [Open Data Covid-19
+Provinsi DKI Jakarta]https://riwayat-file-covid-19-dki-jakarta-jakartagis.hub.arcgis.com/).
+
+![Figure 1](./images/original1.jpg)
+![Figure 2](./images/original2.jpg)
+
+### 1.1 Clarity
+
+### 1.2 Aesthetic
+
+
+# 2. Proposed Design
+The initial sketch of proposed design is as follow (Figure ).
+
+![Figure : Sketch of proposed visualisation](./images/sketch.jpeg)
+
+
+### 2.1 Clarity
+
+### 2.2 Aesthetic
+
+
+# 3. Proposed Visualisation on Tableau
+Please view the proposed visualisation on Tableau Public [here]().
+
+![Figure x: xx](./images/dashboard.png){#id .class width=100%}
+
+
+# 4. Step-By-Step Preparation
+::: l-body
+|No| Step                | Action                                       |
+|--|---------------------|----------------------------------------------|
+|1| xxx| ![](./images/step1.png){#id .class width=100%}|
+
+
+# 5. Major Observations
+1. **Overview**:
+
+
+
+
+
