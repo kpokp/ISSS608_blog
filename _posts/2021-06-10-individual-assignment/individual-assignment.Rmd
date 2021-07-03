@@ -2,6 +2,7 @@
 title: "Individual Assignment (WIP)"
 description: |
   Student hard at work. Check back next time. 
+draft: TRUE
 preview: images/wip.png
 author:
   - name: Kelly Koh
@@ -17,38 +18,360 @@ output:
     self_contained: false
 ---
 
-# Background
+## Background
 
-## Vast Challenge 2021 - The Kronos Incident
+### Vast Challenge 2021 - The Kronos Incident
 In the roughly twenty years that Tethys-based GAStech has been operating a natural gas production site in the island country of Kronos, it has produced remarkable profits and developed strong relationships with the government of Kronos. However, GAStech has not been as successful in demonstrating environmental stewardship.
 
 In January, 2014, the leaders of GAStech are celebrating their new-found fortune as a result of the initial public offering of their very successful company. In the midst of this celebration, several employees of GAStech go missing. An organization known as the Protectors of Kronos (POK) is suspected in the disappearance, but things may not be what they seem.
 
-## Mini Challenge 2 Background
+### Mini Challenge 2 Background
 GAStech provides many of their employees with company cars for their personal and professional use, but unbeknownst to the employees, the cars are equipped with GPS tracking devices. We are given tracking data for the two weeks leading up to the disappearance, as well as credit card transactions and loyalty card usage data. From this data, we would identify anomalies and suspicious behaviors and identify which people use which credit and loyalty cards.
 
-# Methodology and Dashboard Design
+## Methodology and Visualisation 
 
-## Methodology
+### Understand the Spend Transactions
 
-### Segmenting Points of Interest
+### Understand the Car Movement
 
-### Understand the Spend 
-
-### Understand the Paths
-
-### Overall Visualization Design Concepts
-
-## Visualization Design
-
-### Popular Locations Based on Credit Card and Loyalty Card Data
-
-###
+### Unify View of Transactions and the Car Movement 
 
 
-# Insights and Conlusions
+## R Packages and Datasets
 
-## Question 1 
+### The following R packages are used:
+```{r download packages, include = TRUE, warning = FALSE}
+packages = c('ggplot2', 'tidyverse', 'readr', 'jpeg', 'grid', 
+             'plotly', 'gganimate', 'DT', 'lubridate', 'rgdal',
+             'geohashTools', 'timetk', 'igraph', 'visNetwork', 'tm')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+### There are 4 datasets provided:
+
+- **Credit card data**: transaction of each credit card with time stamp, price and location
+
+```{r cc data, warning=FALSE, include=TRUE, paged.print=TRUE}
+cc <- read_csv("data/cc_data.csv",
+               col_types = cols(timestamp = col_datetime(format = "%m/%d/%Y  %H:%M"), 
+                                location = col_character(), 
+                                price = col_double(), 
+                                last4ccnum = col_character())) %>%
+               mutate_if(is.character, str_replace_all, pattern = "[^[:graph:]]", replacement = " ")
+head(cc,5)
+
+#tm_map(cc, content_transformer(function(x) iconv(x, to='UTF-8-MAC', sub='byte'))) 
+
+```
+
+- **Loyalty card data**: transaction on loyalty card with date, price and location
+
+```{r loyalty data, include = TRUE, warning = FALSE}
+loyalty <- read_csv("data/loyalty_data.csv",
+               col_types = cols(timestamp = col_date(format = "%m/%d/%Y"), 
+                                location = col_character(), 
+                                price = col_double(), 
+                                loyaltynum = col_character())) %>%
+               mutate_if(is.character, str_replace_all, pattern = "[^[:graph:]]", replacement = " ")
+head(loyalty,5)
+```
+
+- **GPS data**: latitude and longitude of each employee vehicle (ID) when in movement
+
+```{r gps data, include = TRUE, warning = FALSE}
+gps <- read_csv("data/gps.csv",
+               col_types = cols(Timestamp = col_datetime(format = "%m/%d/%Y  %H:%M:%S"), 
+                                id = col_character(), 
+                                lat = col_double(), 
+                                long = col_double()))
+head(gps,5)
+```
+
+- **Car assignment data**: full name of employee and ID of car assigned 
+
+```{r car assignment data, include = TRUE, warning = FALSE}
+cars <- read_csv("data/car-assignments.csv",
+               col_types = cols(.default = col_character()))
+head(cars,5)
+```
+
+## Data Preparation
+
+### Data Cleaning
+
+Match names of locations in credit card and loyalty card transactions to check spelling
+
+```{r POI names, warning=FALSE, include=TRUE}
+cc_loc <- cc %>% distinct(location) %>% arrange(location) 
+loyalty_loc <- loyalty %>% distinct(location) %>% arrange(location) 
+location <- full_join(cc_loc, loyalty_loc, by = "location") %>% 
+            arrange(location)
+location
+```
+
+Assign categories to add semantics to 34 points-of-interest (POI)
+
+```{r POI category, warning=FALSE, include=TRUE, paged.print=TRUE}
+food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
+          "Brewed Awakenings","Coffee Cameleon","Coffee Shack","Gelatogalore",
+          "Guy's Gyros", "Hallowed Grounds","Hippokampos","Jack's Magical Beans", 
+          "Kalami Kafenion", "Katerina\x92s Caf\xe9","Ouzeri Elian")
+retail <- c("Albert's Fine Clothing","Daily Dealz","General Grocer","Kronos Mart",
+            "Roberts and Sons", "Shoppers' Delight")
+gas <- c("Frank's Fuel","U-Pump")
+leisure <- c("Abila Airport","Ahaggo Museum","Chostus Hotel","Desafio Golf Course")
+company <- c("Abila Scrapyard","Carlyle Chemical Inc.","Frydos Autosupply n' More",
+             "Kronos Pipe and Irrigation","Maximum Iron and Steel",
+             "Nationwide Refinery","Octavio's Office Supplies","Stewart and Sons Fabrication")
+
+location <- location %>% mutate(category = 
+                    ifelse(location %in% food, "Food",
+                    ifelse(location %in% retail, "Retail",
+                    ifelse(location %in% gas, "Gas",
+                    ifelse(location %in% leisure, "Leisure",
+                    ifelse(location %in% company, "Company", NA)))))) 
+location
+```
+
+Check credit card & loyalty transactions postings by locations for patterns
+
+```{r cc patterns, warning=FALSE, include=TRUE, paged.print=TRUE}
+# Summarize cc data by hour
+cc_hour <- cc %>% mutate(hour_cc = hour(timestamp)) %>% 
+      group_by(location,hour_cc) %>% 
+      count()
+
+# Plot cc hour data as heatmap
+heatmap_cc <- ggplot(cc_hour, aes(x=hour_cc,y=location)) +
+            theme_minimal() +
+            geom_tile(aes(fill = n)) +
+            scale_x_continuous(breaks = seq(0,24,1)) +
+            labs(x = "Hour", y = "Location")
+
+ggplotly(heatmap_cc)
+```
+We observed that some of the locations only have credit card transactions in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM and Daily Dealz at 6AM. Kronos Mart registered transactions at 3AM, which we would validate against the GPS data.
+
+Merge credit card transactions to loyalty transactions
+
+- To merge using date, location and spend amount
+- To remove false matches, any match that only has 1 count will be removed
+
+```{r merge cc & loyalty, include = TRUE, warning = FALSE}
+# Create new date field for credit card data
+cc <- cc %>% 
+      mutate(datestamp = as.Date(timestamp))
+
+# Join datasets on date, location and price range
+transact <- full_join(cc,loyalty, by = c("datestamp" = "timestamp","location","price")) 
+
+# Find the unique pairs of credit card and loyalty card num
+pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
+             count() %>%
+             filter(n>1) %>%
+             drop_na() %>%
+             arrange(last4ccnum,loyaltynum)
+pairs
+```
+
+Prepare transaction data for network graph format
+
+```{r prep network graph, warning=FALSE, include=TRUE, paged.print=TRUE}
+transact_match <- transact %>% drop_na()
+
+last4ccnum <- transact_match %>%
+  distinct(last4ccnum) %>%
+  rename(label = last4ccnum) %>%
+  mutate(group = 'cc')
+
+loyaltynum <- transact_match %>%
+  distinct(loyaltynum) %>%
+  rename(label = loyaltynum) %>%
+  mutate(group = 'loyalty')
+
+nodes <- full_join(loyaltynum, last4ccnum, by = c("label","group"))
+
+nodes <- nodes %>% rowid_to_column("id") %>% view()
+
+per_route <- transact_match %>%  
+  group_by(loyaltynum, last4ccnum) %>%
+  summarise(weight = n()) %>% 
+  ungroup()
+
+edges <- per_route %>% 
+  left_join(nodes, by = c("last4ccnum" = "label")) %>% 
+  rename(from = id)
+
+edges <- edges %>% 
+  left_join(nodes, by = c("loyaltynum" = "label")) %>% 
+  rename(to = id)
+
+edges <- select(edges, from, to, weight) %>% 
+  filter(weight > 1) %>% 
+  mutate(width = weight/5 + 1) %>% 
+  view()
+
+routes_igraph <- graph_from_data_frame(d = edges, vertices = nodes, directed = TRUE)
+```
+
+Plot network graph to show cc and loyalty data relationship
+
+- Unexpected relationships: 1286 & L3288, L6267 - 6691 & 6899
+
+```{r network graph of txn, warning=FALSE, include=TRUE, paged.print=TRUE}
+# https://www.jessesadler.com/post/network-analysis-with-r/
+# plot(routes_igraph, edge.arrow.size = 0.2, layout = layout_with_graphopt)
+visNetwork(nodes, edges, width = "100%", main = "Credit Card and Loyalty Card Relationships") %>% 
+  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>% 
+  visGroups(groupname = "cc", color = "lightblue") %>%    
+  visGroups(groupname = "loyalty", color = "orange") %>% 
+  visLegend(width = 0.1, position = "right", main = "Group")
+```
+
+Merge credit card transactions to loyalty transactions
+
+```{r warning=FALSE, include=TRUE, paged.print=TRUE}
+# Find the unique pairs of credit card and loyalty card num
+transact %>% filter(loyaltynum=='L6267'| last4ccnum==6691) %>%
+             arrange(last4ccnum,loyaltynum) %>%
+             view()
+```
+There are some late postings of credit card transactions and rebates on loyalty cards that are not registered on credit card transactions. For example, at Stewart and Sons Fabrication
+
+
+Detect events from GPS log
+
+- To define all stops above 5 minutes in GPS logs as events
+- Each event will have a time span, a location, and a person
+- Identify home of employee as the location with the location with the longest span
+
+```{r include = TRUE, warning = FALSE}
+
+# Merge car assignments to gps data
+gps_name <- left_join(gps,cars, by = c("id" = "CarID"))
+
+# Changing timestamp in gps to just date
+gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%m/%d/%Y  %H:%M:%S")
+
+# Sort table by id & timestamp
+gps_name <- gps_name %>% arrange(id,Timestamp)
+
+# Find difference between timestamp and id
+gps_name_temp <- select(gps_name,Timestamp)
+time_diff <- tail(gps_name_temp,-1) - head(gps_name_temp,-1)
+
+# Join & Tag Start and Stop for Intervals > 5 min
+gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
+    rename(diff=...1) %>%
+    group_by(id) %>%
+    mutate(start = ifelse(diff/60 > 5,'start',ifelse(diff/60 < 0,'start',NA))) %>% 
+    mutate(stop = lead(start)) %>% 
+    mutate(home = ifelse(diff/60/60 > 6,'home',NA)) %>%
+    mutate(diff = seconds_to_period(diff)) %>%
+    mutate(stop = ifelse(stop == 'start','stop',NA)) %>%
+    # Encode lat long into geohash    
+    mutate(geohash = gh_encode(latitude = lat, longitude = long, precision = 7L))
+```
+
+
+Enrich events with points of-interest
+- If the transaction time is within the time span of an event, it is assigned to that event
+
+```{r include = TRUE, warning = FALSE}
+gps_name_diff %>%
+              filter(id == "1", start == "start")
+
+```
+
+### Setup the map layers 
+
+```{r include = FALSE, warning = FALSE}
+# Adding jpeg file into environment
+mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
+
+# Adding KML file into environment
+abila <- readOGR("data/Geospatial/Abila.kml", "Abila")
+```
+
+```{r include = TRUE, warning = FALSE}
+#view the KML file over the jpeg map
+map <- ggplot(gps_name_diff %>%
+                    filter(id == "1", start == "start"),
+                  aes(long, lat)) + 
+    
+  # Add image background  
+   #annotation_custom(rasterGrob(mc2,
+    #width = unit(1, "npc"),
+    #height = unit(1,"npc")),
+    #xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) +
+  # Remove background and grids and reformat scales and axis
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+  # Add KML layer  
+    geom_path(data = abila, aes(x = long, y = lat, group = group))  +
+    coord_quickmap() +
+
+  # Add points
+    geom_point(size = 1, color='red') 
+map
+```
+
+```{r layout="l-page", include = TRUE, warning = FALSE, fig.width=12, fig.height=7}
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.7,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+
+```{r include = TRUE, warning = FALSE}
+# Mapping map and gps together specifically for CarID #1
+mapping <- ggplot(gps_name %>%
+                    filter(id == "1"),
+                  aes(long, lat)) +
+    annotation_custom(rasterGrob(mc2,
+    width = unit(1, "npc"),
+    height = unit(1,"npc")),
+    xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+    geom_point(size = 0.1) + 
+    coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + 
+
+# Fixing the scales regardless of filtering of points
+    theme_bw() + theme(panel.border = element_blank(),
+
+# Remove background and grids and reformat scales and axis
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.line = element_line(colour = "black"))  
+ 
+mapping
+```
+
+
+## Insights and Conlusions
+
+### Question 1 
 Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words. 
 
 ::: l-body
@@ -64,7 +387,7 @@ Using just the credit and loyalty card data, identify the most popular locations
 |8| text| ![](./images/Q1_8.png){#id .class width=100%}|
 :::
 
-## Question 2
+### Question 2
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
 ::: l-body
@@ -80,7 +403,7 @@ Add the vehicle data to your analysis of the credit and loyalty card data. How d
 |8| text| ![](./images/Q2_8.png){#id .class width=100%}|
 :::
 
-## Question 3
+### Question 3
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
 
 ::: l-body
@@ -96,7 +419,7 @@ Can you infer the owners of each credit card and loyalty card? What is your evid
 |8| text| ![](./images/Q3_8.png){#id .class width=100%}|
 :::
 
-## Question 4
+### Question 4
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
 
 ::: l-body
@@ -112,7 +435,7 @@ Given the data sources provided, identify potential informal or unofficial relat
 |8| text| ![](./images/Q4_8.png){#id .class width=100%}|
 :::
 
-## Question 5
+### Question 5
 Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.
 
 ::: l-body
@@ -129,58 +452,5 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 |9| text| ![](./images/Q5_9.png){#id .class width=100%}|
 |10| text| ![](./images/Q5_10.png){#id .class width=100%}|
 :::
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-
-# Installing and loading necessary packages
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate)
-
-```
-
-```{r}
-
-# Adding jpeg file into environment
-mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
-
-# Adding gps data
-gps <- readr::read_csv("data/gps.csv")
-assignments <- readr::read_csv("data/car-assignments.csv")
-
-# Merge car assignments to gps data
-gps_name <- left_join(gps,assignments, by = c("id" = "CarID"))
-
-# Changing timestamp in gps to just date
-gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%d/%m/%Y  %H:%M:%S")
-
-# Mapping map and gps together specifically for CarID #1
-mapping <- ggplot(gps_name %>%
-                    filter(id == "1"),
-                  aes(long, lat)) +
-  annotation_custom(rasterGrob(mc2,
-    width = unit(1, "npc"),
-    height = unit(1,"npc")),
-  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
-  geom_point(size = 0.1) + 
-  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + 
-
-# Fixing the scales regardless of filtering of points
-  theme_bw() + theme(panel.border = element_blank(),
-# Remove background and grids and reformat scales and axis
-                     panel.grid.major = element_blank(), 
-                     panel.grid.minor = element_blank(), 
-                     axis.line = element_line(colour = "black"))  
- 
-mapping
-
-
-```
-
-
-
-
-
-
 
 
