@@ -1,0 +1,193 @@
+---
+title: "TIL: Week 9 In-Class Exercise"
+description: |
+  Today I learnt in class: How to use plotly to plot interactive charts and crosstalk to link charts/data tables. And we also go deeper into visualization of geospatial data using sf, raster, and tmap functions.
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: 07-03-2021
+preview: math_dot_interactive
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+## Install packages and loading data
+
+### Install the necessary packages if they are not in library
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+packages = c('DT','ggiraph','plotly','tidyverse','patchwork',
+            'sf','tmap','raster','clock')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+### Import data from csv and preview data
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+exam_data <- read_csv("data/Exam_data.csv")
+
+head(exam_data,10)
+summary(exam_data)
+```
+
+## Interactive Plots
+
+### Interactive scatterplot using plot_ly()
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+palette <- c("red", "blue", "darkgreen", "orange")
+
+plot_ly(data =exam_data, 
+        x = ~MATHS, 
+        y = ~ENGLISH,
+        color = ~RACE,
+        text = ~paste("Student ID:", ID, 
+        # break line using <br>
+			  "<br>Class:", CLASS),
+        colors = palette)
+```
+
+### Plotly as a wrapper of ggplot
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+p <- ggplot(data=exam_data, aes(x = MATHS, y = ENGLISH)) + 
+     geom_point(size = 1) +
+     coord_cartesian(xlim = c(0,100),
+                     ylim = c(0,100))
+ggplotly(p)
+```
+
+### Linked charts using highlight_key from crosstalk::SharedData
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+d <- highlight_key(exam_data)
+
+p1 <- ggplot(data=d, aes(x = MATHS, y = ENGLISH)) + 
+      geom_point(size = 1) +
+      coord_cartesian(xlim = c(0,100),
+                      ylim=c(0,100))
+
+p2 <- ggplot(data=d, aes(x = MATHS, y = SCIENCE)) + 
+      geom_point(size = 1) +
+      coord_cartesian(xlim = c(0,100),
+                      ylim = c(0,100))
+
+subplot(ggplotly(p1),
+        ggplotly(p2))
+```
+
+### Linked brushing: crosstalk method to link DT table to the chart
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+d <- highlight_key(exam_data)
+p <- ggplot(d,
+            aes(ENGLISH,
+                MATHS)) +
+      geom_point(size=1) + 
+      coord_cartesian(xlim=c(0,100),
+                    ylim=c(0,100))
+
+gg <- highlight(ggplotly(p),
+                "plotly_selected")
+
+crosstalk::bscols(gg,
+                  DT::datatable(d),
+                  widths = 3)
+```
+
+## Visualizing Geospatial Data
+
+### Import MC2-tourist.tif created using QGIS
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+ap <- raster("data/Geospatial/MC2-tourist.tif")
+ap
+```
+
+### Plotting raster layer using tmap
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+tmap_mode("plot")
+# change to view for interactive version, plot for static version
+tm_shape(ap) + 
+  tm_raster(ap,
+            legend.show = FALSE)
+```
+
+- 3 raster layers: 3 bands false color images. We need to use tm_rgb() instead
+
+
+
+### Plotting raster layer using tmap to merge rgb bands
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+tm_shape(ap) +
+tm_rgb(ap, r=1,g=2,b=3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255)
+```
+
+### Use sf to import Vector GIS data files in ESRI shapefile format
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+abila_st <- st_read(dsn = "data/Geospatial",
+                    layer = "Abila")
+```
+
+### Importing Aspatial data using read_csv
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps <- read_csv("data/aspatial/gps.csv")
+glimpse(gps)
+```
+
+### Converting date-time field using clock and id using forcats to right format
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps$Timestamp <- date_time_parse(gps$Timestamp,
+                                 zone ="",
+                                 format = "%m/%d/%Y %H:%M:%S")
+# Factor is a unique kind of character for numerical values
+gps$id <- as_factor(gps$id)
+gps
+```
+
+### Converting aspatial data into simple feature data frame using st_as_sf
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_sf <- st_as_sf(gps,
+                   coords = c("long","lat"),
+                            # EPSG 4326 which stands for wgs84 geo. coord sys
+                            crs = 4326)
+gps_sf
+```
+
+### Creating movement path from GPS points
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path <- gps_sf %>%
+            group_by(id) %>%
+            # Due to peculiar nature of group by, we need to do an action such as summarize
+            summarize(m = mean(Timestamp),
+                      do_union = FALSE) %>%
+            st_cast("LINESTRING")
+gps_path
+# Have to slice the paths by days, or time period to derive meaningful paths
+```
+
+
+### Plotting the gps paths
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path_selected <- gps_path %>% 
+  filter (id==1)
+tmap_mode("view")
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+  tm_shape(gps_path_selected) +
+  tm_lines()
+
+```
