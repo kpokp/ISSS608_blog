@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["dataviz-makeover-3_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-3_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-3_files/distill-2.2.21/template.v2.js","dataviz-makeover-3_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-3_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-3_files/popper-2.6.0/popper.min.js","dataviz-makeover-3_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-3_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-3_files/tippy-6.2.7/tippy.css","dataviz-makeover-3_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-3_files/webcomponents-2.0.0/webcomponents.js","images/original1.jpg","images/original2.jpg"]}
+  {"type":"character","attributes":{},"value":["dataviz-makeover-3_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-3_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-3_files/distill-2.2.21/template.v2.js","dataviz-makeover-3_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-3_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-3_files/popper-2.6.0/popper.min.js","dataviz-makeover-3_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-3_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-3_files/tippy-6.2.7/tippy.css","dataviz-makeover-3_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-3_files/webcomponents-2.0.0/webcomponents.js","images/original1.jpg","images/original2.jpg","images/step1.png","images/step2.png","images/step3.png"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1516,7 +1516,235 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <img src="./images/dashboard.png" id="id" class="class" style="width:100.0%" alt="Figure x: xx" /><figcaption aria-hidden="true">Figure x: xx</figcaption>
 </figure>
 <h1 id="step-by-step-preparation">4. Step-By-Step Preparation</h1>
-<p>::: l-body |No| Step | Action | |–|———————|———————————————-| |1| xxx| <img src="./images/step1.png" id="id" class="class" style="width:100.0%" />|</p>
+<p>Before we dive into cleaning the data, we took time to understand the Excel worksheets and data variable names as they are expressed in Bahasa Indonesia. There are 2 worksheets in the excel.</p>
+<ul>
+<li><code>data</code>: lowest level of geographic granularity is at village level.</li>
+<li><code>data_kecamatan</code>: lowest level of geographic granularity is at district level</li>
+</ul>
+<p>Both worksheets have similar columns and breakdowns beside the geographical variables. Of which, we are only interested in the <code>Positive</code> section where is there information village and district level. Other common columns:</p>
+<ul>
+<li>Suspect</li>
+<li>Probable</li>
+<li>Travelers</li>
+<li>Close Contact</li>
+<li>Discarded</li>
+<li>Positive: Treated, Get Well, Died, Self-Isolation</li>
+<li>Information</li>
+</ul>
+<p>We will only load the <code>data</code> worksheet which has a higher granularity at village level and keep the <code>Positive</code> section and its breakdown.</p>
+<div class="l-body">
+<table>
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 30%" />
+<col style="width: 66%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>No</th>
+<th>Step</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Downloaded the ‘30 Juni 2021 Pukul 10.00’ file from the Open Data Covid-19 Provinsi DKI Jakarta site. Load the ‘Standar Kelurahan Data Corona (30 Juni 2021 Pukul 10.00)’ excel file into Tableau Prep Builder. Check the ‘Data Interpreter’. Drag the ‘data’ worksheet into main pane as data node and create a ‘Clean’ node after the ‘Data’ node.</td>
+<td><img src="images/step1.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Click on ‘Clean 1’ node – under ‘ID_KEL’, click on ‘NULL’ values and exclude them.</td>
+<td><img src="images/step2.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Remove the unnecessary fields with null values. We can make use of the ‘Recommendations’ to help.</td>
+<td><img src="images/step3.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>xxx</td>
+<td><img src="./images/step4.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>xxx</td>
+<td><img src="./images/step5.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>xxx</td>
+<td><img src="./images/step6.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>xxx</td>
+<td><img src="./images/step7.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>xxx</td>
+<td><img src="./images/step8.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>xxx</td>
+<td><img src="./images/step9.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>xxx</td>
+<td><img src="./images/step10.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>xxx</td>
+<td><img src="./images/step11.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>xxx</td>
+<td><img src="./images/step12.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>xxx</td>
+<td><img src="./images/step13.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>xxx</td>
+<td><img src="./images/step14.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>xxx</td>
+<td><img src="./images/step15.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>xxx</td>
+<td><img src="./images/step16.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>xxx</td>
+<td><img src="./images/step17.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>xxx</td>
+<td><img src="./images/step18.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>xxx</td>
+<td><img src="./images/step19.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>xxx</td>
+<td><img src="./images/step20.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>xxx</td>
+<td><img src="./images/step21.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>xxx</td>
+<td><img src="./images/step22.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>xxx</td>
+<td><img src="./images/step23.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>xxx</td>
+<td><img src="./images/step24.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>xxx</td>
+<td><img src="./images/step25.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>xxx</td>
+<td><img src="./images/step26.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>xxx</td>
+<td><img src="./images/step27.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>xxx</td>
+<td><img src="./images/step28.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>29</td>
+<td>xxx</td>
+<td><img src="./images/step29.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>30</td>
+<td>xxx</td>
+<td><img src="./images/step30.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>31</td>
+<td>xxx</td>
+<td><img src="./images/step31.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>32</td>
+<td>xxx</td>
+<td><img src="./images/step32.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>33</td>
+<td>xxx</td>
+<td><img src="./images/step33.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>34</td>
+<td>xxx</td>
+<td><img src="./images/step34.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>35</td>
+<td>xxx</td>
+<td><img src="./images/step35.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>36</td>
+<td>xxx</td>
+<td><img src="./images/step36.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>37</td>
+<td>xxx</td>
+<td><img src="./images/step37.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="even">
+<td>38</td>
+<td>xxx</td>
+<td><img src="./images/step38.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+<tr class="odd">
+<td>39</td>
+<td>xxx</td>
+<td><img src="./images/step39.png" id="id" class="class" style="width:100.0%" /></td>
+</tr>
+</tbody>
+</table>
+</div>
 <h1 id="major-observations">5. Major Observations</h1>
 <ol type="1">
 <li><strong>Overview</strong>:</li>

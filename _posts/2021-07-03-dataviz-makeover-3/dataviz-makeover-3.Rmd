@@ -52,10 +52,68 @@ Please view the proposed visualisation on Tableau Public [here]().
 
 
 # 4. Step-By-Step Preparation
+
+Before we dive into cleaning the data, we took time to understand the Excel worksheets and data variable names as they are expressed in Bahasa Indonesia. There are 2 worksheets in the excel workbook:
+
+- `data`: lowest level of geographic granularity is at village level 
+- `data_kecamatan`: lowest level of geographic granularity is at district level
+
+Both worksheets have similar columns besides the geographical variables. Of which, we are only interested in the `Positive` section where is there information village and district level. Common columns includes:
+
+- Suspect
+- Probable
+- Travelers
+- Close Contact
+- Discarded
+- Positive: Treated, Get Well, Died, Self-Isolation
+- Information
+
+We will only load the `data` worksheet which is more granular at village level and keep the `Positive` section and its breakdown during data cleaning. 
+
+
 ::: l-body
 |No| Step                | Action                                       |
 |--|---------------------|----------------------------------------------|
-|1| xxx| ![](./images/step1.png){#id .class width=100%}|
+|1| Downloaded the ‘30 Juni 2021 Pukul 10.00’ file from the Open Data Covid-19 Provinsi DKI Jakarta site. Load the ‘Standar Kelurahan Data Corona (30 Juni 2021 Pukul 10.00)’ excel file into Tableau Prep Builder. Check the ‘Data Interpreter’. Drag the ‘data’ worksheet into main pane as data node and create a ‘Clean’ node after the ‘Data’ node.| ![](./images/step1.png){#id .class width=100%}|
+|2| Click on ‘Clean 1’ node – under ‘ID_KEL’, click on ‘NULL’ values and exclude them.| ![](./images/step2.png){#id .class width=100%}|
+|3| Remove the unnecessary fields with null values. We can make use of the ‘Recommendations’ to help.| ![](./images/step3.png){#id .class width=100%}|
+|4| Correct the formats of the ID column from number to string. Rename the columns in English by double clicking on the column names. Rename the administrative cities to English.| ![](./images/step4.png){#id .class width=100%}|
+|5| xxx| ![](./images/step5.png){#id .class width=100%}|
+|6| xxx| ![](./images/step6.png){#id .class width=100%}|
+|7| xxx| ![](./images/step7.png){#id .class width=100%}|
+|8| xxx| ![](./images/step8.png){#id .class width=100%}|
+|9| xxx| ![](./images/step9.png){#id .class width=100%}|
+|10| xxx| ![](./images/step10.png){#id .class width=100%}|
+|11| xxx| ![](./images/step11.png){#id .class width=100%}|
+|12| xxx| ![](./images/step12.png){#id .class width=100%}|
+|13| xxx| ![](./images/step13.png){#id .class width=100%}|
+|14| xxx| ![](./images/step14.png){#id .class width=100%}|
+|15| xxx| ![](./images/step15.png){#id .class width=100%}|
+|16| xxx| ![](./images/step16.png){#id .class width=100%}|
+|17| xxx| ![](./images/step17.png){#id .class width=100%}|
+|18| xxx| ![](./images/step18.png){#id .class width=100%}|
+|19| xxx| ![](./images/step19.png){#id .class width=100%}|
+|20| xxx| ![](./images/step20.png){#id .class width=100%}|
+|21| xxx| ![](./images/step21.png){#id .class width=100%}|
+|22| xxx| ![](./images/step22.png){#id .class width=100%}|
+|23| xxx| ![](./images/step23.png){#id .class width=100%}|
+|24| xxx| ![](./images/step24.png){#id .class width=100%}|
+|25| xxx| ![](./images/step25.png){#id .class width=100%}|
+|26| xxx| ![](./images/step26.png){#id .class width=100%}|
+|27| xxx| ![](./images/step27.png){#id .class width=100%}|
+|28| xxx| ![](./images/step28.png){#id .class width=100%}|
+|29| xxx| ![](./images/step29.png){#id .class width=100%}|
+|30| xxx| ![](./images/step30.png){#id .class width=100%}|
+|31| xxx| ![](./images/step31.png){#id .class width=100%}|
+|32| xxx| ![](./images/step32.png){#id .class width=100%}|
+|33| xxx| ![](./images/step33.png){#id .class width=100%}|
+|34| xxx| ![](./images/step34.png){#id .class width=100%}|
+|35| xxx| ![](./images/step35.png){#id .class width=100%}|
+|36| xxx| ![](./images/step36.png){#id .class width=100%}|
+|37| xxx| ![](./images/step37.png){#id .class width=100%}|
+|38| xxx| ![](./images/step38.png){#id .class width=100%}|
+|39| xxx| ![](./images/step39.png){#id .class width=100%}|
+::: 
 
 
 # 5. Major Observations

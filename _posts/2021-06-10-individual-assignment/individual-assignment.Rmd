@@ -39,11 +39,25 @@ GAStech provides many of their employees with company cars for their personal an
 
 ## R Packages and Datasets
 
-### The following R packages are used:
+### The following R packages are used for respective parts of the workflow:
 ```{r download packages, include = TRUE, warning = FALSE}
-packages = c('ggplot2', 'tidyverse', 'readr', 'jpeg', 'grid', 
-             'plotly', 'gganimate', 'DT', 'lubridate', 'rgdal',
-             'geohashTools', 'timetk', 'igraph', 'visNetwork', 'tm')
+packages = c(
+              # Loading data from csv files
+               'readr',
+              # Cleaning and manipulating data 
+              'tidyverse', 'DT',
+              # Manipulate time and date variables
+              'lubridate', 'clock',
+              # Find anomaly in time-series data
+              'timetk',
+              # Plot heat maps, path and scatter plot graphs
+              'ggplot2', 'igraph',
+              # Plot interactive network graph
+              'visNetwork',
+              # Add interactivity to ggplot charts
+              'plotly', 'gganimate',
+              # Load maps & manipulate geo-spatial data
+              'jpeg', 'grid', 'geohashTools', 'sf', 'tmap', 'patchwork', 'raster', 'rgdal')
 
 for (p in packages) {
   if(!require(p, character.only = T)){
@@ -62,10 +76,9 @@ cc <- read_csv("data/cc_data.csv",
                col_types = cols(timestamp = col_datetime(format = "%m/%d/%Y  %H:%M"), 
                                 location = col_character(), 
                                 price = col_double(), 
-                                last4ccnum = col_character())) %>%
-               mutate_if(is.character, str_replace_all, pattern = "[^[:graph:]]", replacement = " ")
+                                last4ccnum = col_factor()))
 head(cc,5)
-
+#mutate_if(is.character, str_replace_all, pattern = "[^[:graph:]]", replacement = " ")
 #tm_map(cc, content_transformer(function(x) iconv(x, to='UTF-8-MAC', sub='byte'))) 
 
 ```
@@ -77,8 +90,7 @@ loyalty <- read_csv("data/loyalty_data.csv",
                col_types = cols(timestamp = col_date(format = "%m/%d/%Y"), 
                                 location = col_character(), 
                                 price = col_double(), 
-                                loyaltynum = col_character())) %>%
-               mutate_if(is.character, str_replace_all, pattern = "[^[:graph:]]", replacement = " ")
+                                loyaltynum = col_factor()))
 head(loyalty,5)
 ```
 
@@ -87,7 +99,7 @@ head(loyalty,5)
 ```{r gps data, include = TRUE, warning = FALSE}
 gps <- read_csv("data/gps.csv",
                col_types = cols(Timestamp = col_datetime(format = "%m/%d/%Y  %H:%M:%S"), 
-                                id = col_character(), 
+                                id = col_factor(), 
                                 lat = col_double(), 
                                 long = col_double()))
 head(gps,5)
@@ -97,7 +109,11 @@ head(gps,5)
 
 ```{r car assignment data, include = TRUE, warning = FALSE}
 cars <- read_csv("data/car-assignments.csv",
-               col_types = cols(.default = col_character()))
+               col_types = cols(LastName = col_character(), 
+                                FirstName = col_character(),
+                                CarID = col_factor(), 
+                                CurrentEmploymentType = col_character(),
+                                CurrentEmploymentTitle = col_character()))
 head(cars,5)
 ```
 
@@ -114,6 +130,12 @@ location <- full_join(cc_loc, loyalty_loc, by = "location") %>%
             arrange(location)
 location
 ```
+Replace the unrecognized characters in Katerina's Cafe location in cc & loyalty data
+
+```{r update POI name, warning=FALSE, include=TRUE}
+cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe"
+loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe"
+```
 
 Assign categories to add semantics to 34 points-of-interest (POI)
 
@@ -121,7 +143,7 @@ Assign categories to add semantics to 34 points-of-interest (POI)
 food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
           "Brewed Awakenings","Coffee Cameleon","Coffee Shack","Gelatogalore",
           "Guy's Gyros", "Hallowed Grounds","Hippokampos","Jack's Magical Beans", 
-          "Kalami Kafenion", "Katerina\x92s Caf\xe9","Ouzeri Elian")
+          "Kalami Kafenion", "Katerina's Cafe","Ouzeri Elian")
 retail <- c("Albert's Fine Clothing","Daily Dealz","General Grocer","Kronos Mart",
             "Roberts and Sons", "Shoppers' Delight")
 gas <- c("Frank's Fuel","U-Pump")
@@ -130,37 +152,55 @@ company <- c("Abila Scrapyard","Carlyle Chemical Inc.","Frydos Autosupply n' Mor
              "Kronos Pipe and Irrigation","Maximum Iron and Steel",
              "Nationwide Refinery","Octavio's Office Supplies","Stewart and Sons Fabrication")
 
-location <- location %>% mutate(category = 
+cc %>% mutate(category = 
                     ifelse(location %in% food, "Food",
                     ifelse(location %in% retail, "Retail",
                     ifelse(location %in% gas, "Gas",
                     ifelse(location %in% leisure, "Leisure",
                     ifelse(location %in% company, "Company", NA)))))) 
-location
+
+loyalty %>% mutate(category = 
+                    ifelse(location %in% food, "Food",
+                    ifelse(location %in% retail, "Retail",
+                    ifelse(location %in% gas, "Gas",
+                    ifelse(location %in% leisure, "Leisure",
+                    ifelse(location %in% company, "Company", NA)))))) 
 ```
 
-Check credit card & loyalty transactions postings by locations for patterns
+Check credit card transactions postings by locations by hour for patterns
 
 ```{r cc patterns, warning=FALSE, include=TRUE, paged.print=TRUE}
 # Summarize cc data by hour
-cc_hour <- cc %>% mutate(hour_cc = hour(timestamp)) %>% 
-      group_by(location,hour_cc) %>% 
-      count()
+cc_hour <- cc %>% mutate(hour_cc = as.character.numeric_version(get_hour(timestamp))) %>% 
+                  group_by(location,hour_cc) %>% 
+                  count() %>%
+                  rename("transactions" = n)
 
-# Plot cc hour data as heatmap
-heatmap_cc <- ggplot(cc_hour, aes(x=hour_cc,y=location)) +
-            theme_minimal() +
-            geom_tile(aes(fill = n)) +
-            scale_x_continuous(breaks = seq(0,24,1)) +
-            labs(x = "Hour", y = "Location")
+# Plot cc hourly data as heatmap
+test <- cc_hour %>% filter(location == "Kronos Mart") 
+heatmap_cc <- ggplot(cc_hour, aes(x= hour_cc, y = location, fill = transactions)) +
+              theme_minimal() +
+              geom_tile(colour="white") +
+              labs(x = "Hour", y = "Location") +
+              scale_fill_gradient(low = "#dfe1eb", high = "#261fb4") +
+              labs(title = "Credit Card Spend by Hour",
+                   x = "Hour", fill = "Transactions")
 
 ggplotly(heatmap_cc)
 ```
-We observed that some of the locations only have credit card transactions in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM and Daily Dealz at 6AM. Kronos Mart registered transactions at 3AM, which we would validate against the GPS data.
+
+We observed that some locations only have credit card transactions posted in 1 hour within the day e.g. 
+
+- Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM
+- Daily Dealz at 6AM. 
+
+Another anomaly that we will investigate is the posting from Kronos Mart at 3AM.
+
+
 
 Merge credit card transactions to loyalty transactions
 
-- To merge using date, location and spend amount
+- To merge using date, location and spend amount as loyalty card transaction does not have time
 - To remove false matches, any match that only has 1 count will be removed
 
 ```{r merge cc & loyalty, include = TRUE, warning = FALSE}
@@ -168,10 +208,10 @@ Merge credit card transactions to loyalty transactions
 cc <- cc %>% 
       mutate(datestamp = as.Date(timestamp))
 
-# Join datasets on date, location and price range
+# Join datasets on date, location and price 
 transact <- full_join(cc,loyalty, by = c("datestamp" = "timestamp","location","price")) 
 
-# Find the unique pairs of credit card and loyalty card num
+# Find the unique pairs of credit card and loyalty card 
 pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
              count() %>%
              filter(n>1) %>%
@@ -179,8 +219,10 @@ pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
              arrange(last4ccnum,loyaltynum)
 pairs
 ```
+As it is hard to visualize the interconnection between credit cards and loyalty cards in tabular form, we will use a network graph.  
 
-Prepare transaction data for network graph format
+
+Prepare cc & loyalty matching data for network graph format
 
 ```{r prep network graph, warning=FALSE, include=TRUE, paged.print=TRUE}
 transact_match <- transact %>% drop_na()
@@ -212,7 +254,7 @@ edges <- edges %>%
   left_join(nodes, by = c("loyaltynum" = "label")) %>% 
   rename(to = id)
 
-edges <- select(edges, from, to, weight) %>% 
+edges <- dplyr::select(edges, from, to, weight) %>% 
   filter(weight > 1) %>% 
   mutate(width = weight/5 + 1) %>% 
   view()
@@ -220,9 +262,9 @@ edges <- select(edges, from, to, weight) %>%
 routes_igraph <- graph_from_data_frame(d = edges, vertices = nodes, directed = TRUE)
 ```
 
-Plot network graph to show cc and loyalty data relationship
+Plot network graph to show cc and loyalty cards relationship
 
-- Unexpected relationships: 1286 & L3288, L6267 - 6691 & 6899
+- We found unexpected relationships: 1286 & L3288, L6267 - 6691 & 6899
 
 ```{r network graph of txn, warning=FALSE, include=TRUE, paged.print=TRUE}
 # https://www.jessesadler.com/post/network-analysis-with-r/
@@ -288,6 +330,68 @@ gps_name_diff %>%
               filter(id == "1", start == "start")
 
 ```
+
+
+### Import MC2-tourist.tif created using QGIS
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+ap <- raster("data/Geospatial/MC2-tourist.tif")
+ap
+```
+### Plotting raster layer using tmap to merge rgb bands
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+tm_shape(ap) +
+tm_rgb(ap, r=1,g=2,b=3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255)
+```
+
+### Use sf to import Vector GIS data files in ESRI shapefile format
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+abila_st <- st_read(dsn = "data/Geospatial",
+                    layer = "Abila")
+```
+
+### Converting aspatial data into simple feature data frame using st_as_sf
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_sf <- st_as_sf(gps,
+                   coords = c("long","lat"),
+                            # EPSG 4326 which stands for wgs84 geo. coord sys
+                            crs = 4326)
+gps_sf
+```
+
+### Creating movement path from GPS points
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path <- gps_sf %>%
+            group_by(id) %>%
+            # Due to peculiar nature of group by, we need to do an action such as summarize
+            summarize(m = mean(Timestamp),
+                      do_union = FALSE) %>%
+            st_cast("LINESTRING")
+gps_path
+# Have to slice the paths by days, or time period to derive meaningful paths
+```
+
+### Plotting the gps paths
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path_selected <- gps_path %>% 
+                     filter (id==1)
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+  tm_shape(gps_path_selected) +
+  tm_lines()
+
+```
+
 
 ### Setup the map layers 
 
