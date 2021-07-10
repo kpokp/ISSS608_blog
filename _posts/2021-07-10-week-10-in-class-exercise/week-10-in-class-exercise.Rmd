@@ -156,23 +156,73 @@ g + facet_nodes(~Department) +
 
 ### Computing centrality indices
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
-# using the nicely layout 
-set_graph_style()
-g <- ggraph(GAStech_graph,
-            layout = "nicely") + 
-  geom_edge_link(aes(width = Weight), alpha = 0.2) +
-  scale_edge_width(range = c(0.1,5)) +
-  geom_node_point(aes(colour = Department, size = 0.5, alpha = 0.5))  
-
-g + facet_nodes(~Department) +
-  th_foreground(foreground = "grey80",
-                border = TRUE) +
-  theme(legend.position = 'bottom')
+g <- GAStech_graph %>%
+    # Calculate the centrality based on the betweenness of nodes 
+    # But this calculation is not necessary for ggraph 2.0 just need to indicate centrality_betweenness() under size
+    mutate(betweenness_centrality = centrality_betweenness()) %>%
+    ggraph(layout = "fr") +
+    geom_edge_link(aes(width=Weight),alpha = 0.2) +
+    scale_edge_width(range = c(0.1,5)) +
+    # Increase the size of nodes between on centrality
+    geom_node_point(aes(colour = Department,
+                      size = betweenness_centrality))
+g
 ```
 
-### vv
+### Computing centrality indices
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+g <- GAStech_graph %>%
+    ggraph(layout = "fr") +
+    geom_edge_link(aes(width=Weight),alpha = 0.2) +
+    scale_edge_width(range = c(0.1,5)) +
+    # Increase the size of nodes between on centrality
+    geom_node_point(aes(colour = Department,
+                      size = centrality_betweenness()))
+g
+```
+
+### Visualizing community
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+g <- GAStech_graph %>%
+    # Make the betweenness as a categorical variable
+    mutate(community = as.factor(group_edge_betweenness(weights = Weight, 
+                                                        directed = TRUE))) %>%
+    ggraph(layout = "fr") +
+    
+    geom_edge_link(aes(width=Weight),alpha = 0.2) +
+    scale_edge_width(range = c(0.1,5)) +
+    # Colour using the community value
+    geom_node_point(aes(colour = community))
+g
+
+
+```
+We can also use other detection algorithms to visualize community (besides group_edge_betweenness), including group_leading_eigen, group_fast_greedy, group_louvain, group_walktrap, group_label_prop, group_infomap, group_spinglass, and group_optimal.  
+
+
+### Data prep and plot interactive network graph using visNetwork
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  left_join(GAStech_nodes, by = c("sourceLabel" = "label")) %>%
+  rename(from = id) %>%
+  left_join(GAStech_nodes, by = c("targetLabel" = "label")) %>%
+  rename(to = id) %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(from, to) %>%
+  summarize(weight = n()) %>%
+  filter(from!= to) %>%
+  filter(weight > 1) %>%
+  ungroup()
+
+GAStech_nodes <- GAStech_nodes %>%
+  rename(group = Department)
+
 visNetwork(GAStech_nodes,
-           GAStech_edges_aggregated, width = "100%")
+           GAStech_edges_aggregated, width = "100%") %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123) %>%
+  visOptions(highlightNearest = TRUE,
+             nodesIdSelection = TRUE)
 ```
 
