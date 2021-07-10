@@ -132,9 +132,43 @@ g <- ggraph(GAStech_graph,
   scale_edge_width(range = c(0.1,5)) +
   geom_node_point(aes(colour = Department, size = 0.5, alpha = 0.5)) 
 
-g + facet_edges(~Weekday)
+g + facet_edges(~Weekday) +
+  th_foreground(foreground = "grey80",
+                border = TRUE) +
+  theme(legend.position = 'bottom')
 ```
 
+### Working with facet_nodes()
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+# using the nicely layout 
+set_graph_style()
+g <- ggraph(GAStech_graph,
+            layout = "nicely") + 
+  geom_edge_link(aes(width = Weight), alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department, size = 0.5, alpha = 0.5))  
+
+g + facet_nodes(~Department) +
+  th_foreground(foreground = "grey80",
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+```
+
+### Computing centrality indices
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+# using the nicely layout 
+set_graph_style()
+g <- ggraph(GAStech_graph,
+            layout = "nicely") + 
+  geom_edge_link(aes(width = Weight), alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department, size = 0.5, alpha = 0.5))  
+
+g + facet_nodes(~Department) +
+  th_foreground(foreground = "grey80",
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+```
 
 ### vv
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
