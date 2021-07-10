@@ -85,15 +85,60 @@ GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
 GAStech_graph
 ```
 
+## Visualizing graph data
 
-### vv
+### Visualize the data using ggraph which is wrapped over tidygraph
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+# using the Fruchterman and Reingold layout or "Fr"
+g <- ggraph(GAStech_graph,
+            layout = "fr") + 
+  geom_edge_link(aes(colour = 'grey80')) + 
+  geom_node_point(aes(colour = 'grey40', size = 3)) 
 
+g + theme_graph(background = 'grey10',
+                text_colour = 'white')
+```
+
+### Modifying the node by referring to respective departments
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+# using the nicely layout 
+g <- ggraph(GAStech_graph,
+            layout = "nicely") + 
+  geom_edge_link(aes()) + 
+  geom_node_point(aes(colour = Department, size = 3)) 
+
+g + theme_graph()
+```
+
+### Modifying the node by referring to respective departments
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+# using the nicely layout 
+g <- ggraph(GAStech_graph,
+            layout = "nicely") + 
+  geom_edge_link(aes(width = Weight), alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department, size = 3)) 
+
+g + theme_graph()
+```
+
+### Working with facet_edges()
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, fig.retina=3}
+# using the nicely layout 
+set_graph_style()
+g <- ggraph(GAStech_graph,
+            layout = "nicely") + 
+  geom_edge_link(aes(width = Weight), alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department, size = 0.5, alpha = 0.5)) 
+
+g + facet_edges(~Weekday)
 ```
 
 
 ### vv
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated, width = "100%")
 ```
 
