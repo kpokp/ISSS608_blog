@@ -63,7 +63,7 @@ glimpse(GAStech_edges)
 ```
 
 
-### vv
+### Summarize the data to find the weight of the relationships
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 GAStech_edges_aggregated <- GAStech_edges %>%
                             filter(MainSubject == "Work related")  %>%
@@ -77,9 +77,12 @@ glimpse(GAStech_edges_aggregated)
 ```
 
 
-### vv
+### Using tbl_graph to build tidygraph data model
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-
+GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
+                          edges = GAStech_edges_aggregated,
+                          directed = TRUE)
+GAStech_graph
 ```
 
 
