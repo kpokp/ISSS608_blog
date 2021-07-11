@@ -161,9 +161,35 @@ words_by_newsgroup %>%
 ### TF-IDF - term frequency-inverse document frequency to reflect how important a word is to a document in a collection of corpus
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 # Computing tf-idf within newsgroup
-
 tf_idf <- words_by_newsgroup %>%
           bind_tf_idf(word, newsgroup, n) %>%
           arrange(desc(tf_idf))
 
+# Create an interactive table created using datatable()
+DT::datatable(tf_idf, filter= 'top') %>%
+  formatRound(columns = c('tf','idf','tf_idf'),
+              digits = 3) %>% 
+  formatStyle(0,
+              target = 'row',
+              lineHeight = '25%')
+
+```
+#### Visualizing tf_idf within newsgroups
+```{r}
+# Facet bar charts technique is used to visualize the tf-idf values of science related newsgroup
+tf_idf %>% filter(str_detect(newsgroup,"^sci\\.")) %>%
+           group_by(newsgroup) %>%
+           slice_max(tf_idf,
+                     n = 12) %>%
+           ungroup() %>%
+           mutate(word = reorder(word,
+                                 tf_idf)) %>%
+           ggplot(aes(tf_idf,
+                      word,
+                      fill = newsgroup)) + 
+           geom_col(show.legend = FALSE) + 
+           facet_wrap(~ newsgroup,
+                      scales = "free") +
+           labs(x = "tf-idf",
+                y = NULL)
 ```
