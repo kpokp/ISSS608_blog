@@ -39,8 +39,10 @@ GAStech provides many of their employees with company cars for their personal an
 
 ## R Packages and Datasets
 
-### The following R packages are used for respective parts of the workflow:
+### Load R Packages
+
 ```{r download packages, include = TRUE, warning = FALSE}
+# The following R packages are used for respective parts of the workflow:
 packages = c(
               # Loading data from csv files
                'readr',
@@ -57,7 +59,7 @@ packages = c(
               # Add interactivity to ggplot charts
               'plotly', 'gganimate',
               # Load maps & manipulate geo-spatial data
-              'jpeg', 'grid', 'geohashTools', 'sf', 'tmap', 'patchwork', 'raster', 'rgdal')
+              'jpeg', 'grid', 'geohashTools', 'sf', 'tmap', 'patchwork', 'raster', 'rgdal', 'mapview')
 
 for (p in packages) {
   if(!require(p, character.only = T)){
@@ -67,11 +69,13 @@ for (p in packages) {
 }
 ```
 
-### There are 4 datasets provided:
+### Load Datasets
+
+There are 4 datasets provided:
 
 - **Credit card data**: transaction of each credit card with time stamp, price and location. 
-- 55 unique credit card numbers
-- 1490 cc transactions
+    + 55 unique credit card numbers
+    + 1490 cc transactions
 
 ```{r cc data, warning=FALSE, include=TRUE, paged.print=TRUE}
 cc <- read_csv("data/cc_data.csv",
@@ -83,8 +87,8 @@ glimpse(cc)
 ```
 
 - **Loyalty card data**: transaction on loyalty card with date, price and location. 
-- 54 unique loyalty card numbers
-- 1392 loyalty card transactions
+    + 54 unique loyalty card numbers
+    + 1392 loyalty card transactions
 
 ```{r loyalty data, include = TRUE, warning = FALSE}
 loyalty <- read_csv("data/loyalty_data.csv",
@@ -95,7 +99,8 @@ loyalty <- read_csv("data/loyalty_data.csv",
 glimpse(loyalty)
 ```
 
-- **GPS data**: latitude and longitude of each employee vehicle (ID) when in movement
+- **GPS data**: latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
+    + 685,169 records
 
 ```{r gps data, include = TRUE, warning = FALSE}
 gps <- read_csv("data/gps.csv",
@@ -106,7 +111,7 @@ gps <- read_csv("data/gps.csv",
 glimpse(gps)
 ```
 
-- **Car assignment data**: full name of employee and ID of car assigned 
+- **Car assignment data**: full names of employees and ID of cars assigned 
 
 ```{r car assignment data, include = TRUE, warning = FALSE}
 cars <- read_csv("data/car-assignments.csv",
@@ -118,11 +123,11 @@ cars <- read_csv("data/car-assignments.csv",
 glimpse(cars)
 ```
 
-## Data Preparation
+## Data Cleaning and Transformation
 
-### Data Cleaning
+### Credit and Loyalty Card transactions
 
-Match names of locations in credit card and loyalty card transactions to check spelling
+#### Match names of locations in credit card and loyalty card transactions to check spelling
 
 ```{r POI names, warning=FALSE, include=TRUE}
 cc_loc <- cc %>% distinct(location) %>% arrange(location) 
@@ -134,14 +139,14 @@ location <- full_join(cc_loc, loyalty_loc, by = "location") %>%
 location
 ```
 
-Replace the unrecognized characters in Katerina's Cafe location in cc & loyalty data
+#### Replace the unrecognized characters in Katerina's Cafe location in cc & loyalty data
 
 ```{r update POI name, warning=FALSE, include=TRUE}
 cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe"
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe"
 ```
 
-Assign categories to add semantics to 34 points-of-interest (POI)
+#### Assign categories to add semantics to 34 points-of-interest (POI)
 
 ```{r POI category, warning=FALSE, include=TRUE, paged.print=TRUE}
 food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
@@ -171,7 +176,7 @@ loyalty %>% mutate(category =
                     ifelse(location %in% company, "Company", NA)))))) 
 ```
 
-Check credit card transactions postings by locations by hour for patterns
+#### Check credit card transactions postings by locations by hour for patterns
 
 ```{r cc patterns, warning=FALSE, include=TRUE, paged.print=TRUE}
 # Summarize cc data by hour
@@ -181,7 +186,6 @@ cc_hour <- cc %>% mutate(hour_cc = as.character.numeric_version(get_hour(timesta
                   rename("transactions" = n)
 
 # Plot cc hourly data as heatmap
-test <- cc_hour %>% filter(location == "Kronos Mart") 
 heatmap_cc <- ggplot(cc_hour, aes(x= hour_cc, y = location, fill = transactions)) +
               theme_minimal() +
               geom_tile(colour="white") +
@@ -202,9 +206,9 @@ Another anomaly that we will investigate is the posting from Kronos Mart at 3AM.
 
 
 
-Merge credit card transactions to loyalty transactions
+#### Merge credit card transactions to loyalty transactions
 
-- To merge using date, location and spend amount as loyalty card transaction does not have time
+- To merge using date, location and spend amount as loyalty card transactions do not have time
 - To remove spurious matches, any match that only has 1 count will be removed
 
 ```{r merge cc & loyalty, include = TRUE, warning = FALSE}
@@ -213,10 +217,11 @@ cc <- cc %>%
       mutate(datestamp = as.Date(timestamp))
 
 # Join datasets on date, location and price 
-transact <- full_join(cc,loyalty, by = c("datestamp" = "timestamp","location","price")) %>%             view()
+transact <- full_join(cc,loyalty, by = c("datestamp" = "timestamp","location","price")) %>%             
+            view()
 
+# 1,087 paired trans - with possibility of spurious matches
 transact %>% drop_na() %>% view()
-# 1087 paired trans - with possibility of spurious matches
 
 # Find the unique pairs of credit card and loyalty card 
 pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
@@ -228,12 +233,10 @@ pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
              view()
 ```
 
-We will look into resolving certain data quality issues to enhance the pairing. 
-
-As it is hard to visualize the interconnection between credit cards and loyalty cards in tabular form, we will use a network graph.  
+We will look into resolving certain data quality issues to enhance the pairing. As it is hard to visualize the interconnection between credit cards and loyalty cards in tabular form, we will use a network graph.  
 
 
-Prepare cc & loyalty matching data for network graph format
+#### Prepare cc & loyalty matching data for network graph format
 
 ```{r prep network graph, warning=FALSE, include=TRUE, paged.print=TRUE}
 transact_match <- transact %>% drop_na()
@@ -269,17 +272,14 @@ edges <- dplyr::select(edges, from, to, weight) %>%
   filter(weight > 1) %>% 
   mutate(width = weight/5 + 1) %>% 
   view()
-
-routes_igraph <- graph_from_data_frame(d = edges, vertices = nodes, directed = TRUE)
 ```
 
-Plot network graph to show cc and loyalty cards relationship
+#### Plot network graph to show cc and loyalty cards relationship
 
 ```{r network graph of txn, warning=FALSE, include=TRUE, paged.print=TRUE}
-# https://www.jessesadler.com/post/network-analysis-with-r/
-# plot(routes_igraph, edge.arrow.size = 0.2, layout = layout_with_graphopt)
 visNetwork(nodes, edges, width = "100%", main = "Credit Card and Loyalty Card Relationships") %>% 
-  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>% 
+  visOptions(highlightNearest = TRUE, nodesIdSelection = list(enabled = TRUE,
+                                                              selected = "74")) %>% 
   visGroups(groupname = "cc", color = "lightblue") %>%    
   visGroups(groupname = "loyalty", color = "orange") %>% 
   visLegend(width = 0.1, position = "right", main = "Group")
@@ -288,10 +288,10 @@ visNetwork(nodes, edges, width = "100%", main = "Credit Card and Loyalty Card Re
 
 - We found unexpected relationships: 1286 & L3288, L6267 - 6691 & 6899
 
-Merge unmatched credit card transactions to loyalty transactions
+#### Merge unmatched credit card transactions to loyalty transactions
 
-- 326 loyalty card transactions and 424 credit card transactions were unpaired
-- Based on the pairs of cc and loyalty numbers, match the remaining unmatched transactions based on date, location and price range
+- 326 loyalty card transactions and 424 credit card transactions were unpaired based on exact date, spend and location
+- Based on the pairs of cc and loyalty numbers, we will match the remaining unmatched transactions based on date, location and price range, with loyalty price lower than credit card price.
 
 ```{r unmatched trans, warning=FALSE, include=TRUE, paged.print=TRUE}
 # Create config table based on matched loyalty and credit card numbers 
@@ -300,7 +300,7 @@ config <- pairs %>%
           dplyr::select(last4ccnum, loyaltynum) %>%
           view()
 
-# 1066 transactions with exact match on date, loyalty number, price and location
+# 1,066 transactions with exact match on date, loyalty number, price and location
 exact_match <-  cc %>% 
                 left_join(config, by = "last4ccnum") %>% 
                 inner_join(loyalty, by = c("datestamp" = "timestamp",
@@ -322,7 +322,7 @@ loyalty_unmatched <- loyalty %>%
                                       "loyaltynum","location","price")) %>%
                      view()
 
-# Match with loyalty price to be lower or equal to cc price
+# Fuzzy match with loyalty price to be lower or equal to cc price
 loyalty_cashback <- cc_unmatched %>% 
                     left_join(config, by = "last4ccnum") %>%
                     fuzzy_full_join(loyalty_unmatched, 
@@ -339,10 +339,10 @@ loyalty_cashback <- loyalty_cashback %>%
                     view()
 ```
 
-The cashback amount on the loyalty card usually ranges from 20-80, in increments of 20s.
+We discover that there are 219 transactions that have loyalty card price lower than credit card prices in a pattern. The lower amount registered on the loyalty card usually ranges from 20-80, in increments of 20s. This suggests that there might be a systemic program that led to this outcome e.g. cashback program.
 
-
-- Based on the pairs of cc and loyalty numbers, match the remaining unmatched transactions based on location and price to check for any delayed postings
+#### Merge unmatched credit card transactions to loyalty transactions - round 2
+- Based on the pairs of cc and loyalty numbers, we will match the remaining unmatched transactions based on location and price (and not date) to check for any delayed postings of credit card transactions.
 
 ```{r unmatched trans 2, warning=FALSE, include=TRUE, paged.print=TRUE}
 # 205 cc transactions exclude matches from cashback match
@@ -375,11 +375,14 @@ cc_delay_post_2 <- cc_delay_post %>%
 
 ```
 
+We discover that Kronos Mart credit card transactions usually post 1 day late. And this match also teases out the unusual relationship between credit card 1286 and L3288. 
 
-- Based on the pairs of cc and loyalty numbers, match the remaining unmatched transactions based on location and price range
+
+#### Merge unmatched credit card transactions to loyalty transactions - round 3
+- Based on the pairs of cc and loyalty numbers, we will match the remaining unmatched transactions based on location and price range, whereby loyalty card price will be greater than credit card price
 
 ```{r unmatched trans 3, warning=FALSE, include=TRUE, paged.print=TRUE}
-# 183 cc transactions exclude matches from delay post
+# 183 cc transactions exclude matches from delay posting
 cc_unmatched_3 <- cc_delay_post %>% 
                   filter_all(any_vars(is.na(.))) %>% 
                   drop_na(last4ccnum) %>%
@@ -388,7 +391,7 @@ cc_unmatched_3 <- cc_delay_post %>%
                               datestamp) %>% 
                   view()
 
-# 85 loyalty transactions exclude matches from delay post
+# 85 loyalty transactions exclude matches from delay posting
 loyalty_unmatched_3 <- cc_delay_post %>% 
                       filter_all(any_vars(is.na(.))) %>% 
                       drop_na(loyaltynum) %>%
@@ -396,7 +399,7 @@ loyalty_unmatched_3 <- cc_delay_post %>%
                                    timestamp.y, loyaltynum) %>%
                       view()
 
-# Match with loyalty price to be greater or equal to cc price
+# Match with loyalty price to be greater or equal to cc price 
 cc_cashback <- left_join(cc_unmatched_3,config, 
                          by = "last4ccnum") %>% 
                fuzzy_full_join(loyalty_unmatched_3, 
@@ -410,18 +413,22 @@ cc_cashback <- left_join(cc_unmatched_3,config,
                               `==`)) %>%
                view()
 
-
 ```
+
+No pattern was discovered from the match. We will disregard the matches. We will treat the remainder as situations whereby employees used one of the two cards.
+
+
+#### Prepare final list of transaction records
 
 ```{r final trans, warning=FALSE, include=TRUE, paged.print=TRUE}
 loyalty_cashback_final <- loyalty_cashback %>%
                           dplyr::select(timestamp.x,
                                        location.x, price.x, last4ccnum,
                                        datestamp, loyaltynum.x) %>%
-                           rename(timestamp = timestamp.x, 
-                           location = location.x,
-                           price = price.x,
-                           loyaltynum = loyaltynum.x)
+                          rename(timestamp = timestamp.x, 
+                          location = location.x,
+                          price = price.x,
+                          loyaltynum = loyaltynum.x)
 
 cc_delay_post_final <- cc_delay_post_2 %>% 
                        dplyr::select(timestamp.x, 
@@ -436,20 +443,157 @@ trans_final <- exact_match %>%
 
 ```
 
-Detect events from GPS log
+### GPS Logs and Map Layers
 
-- To define all stops above 5 minutes in GPS logs as events
+#### Set up map layers
+```{r map layers, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+# Import MC2-tourist.tif created using QGIS
+ap <- raster("data/Geospatial/MC2-tourist.tif")
+ap
+
+# Plotting raster layer using tmap to merge rgb bands
+tm_shape(ap) +
+tm_rgb(ap, r=1,g=2,b=3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255)
+
+# Use sf to import Vector GIS data files in ESRI shapefile format
+abila_st <- st_read(dsn = "data/Geospatial",
+                    layer = "Abila")
+```
+
+#### Converting aspatial data into simple feature data frame using st_as_sf
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_sf <- st_as_sf(gps,
+                   coords = c("long","lat"),
+                            # EPSG 4326 which stands for wgs84 geo. coord sys
+                            crs = 4326)
+```
+
+### Creating movement path from GPS points 
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path <- gps_sf %>%
+            group_by(id) %>%
+            # Due to peculiar nature of group by, we need to do an action such as summarize
+            summarize(m = mean(Timestamp),
+                      do_union = FALSE) %>%
+            st_cast("LINESTRING") %>%
+            ungroup()
+            
+gps_path
+# Have to slice the paths by days, or time period to derive meaningful paths
+```
+
+#### Plotting the gps paths by employees to detect gps anomalies
+```{r plot gps, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path_selected <- gps_path %>% view()
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+  tm_shape(gps_path_selected) +
+  tm_lines() +
+  tm_facets(by = "id")
+```
+
+We noticed that Car ID 28 and 9 have gps data issues:
+
+- Car ID 28's gps coordinates are systematically misaligned, which we can shift back using GAStech as the anchoring position and averaging out the coordinates
+- Car ID 9's gps records are spotty, journeys did not end and start in the same place
+
+```{r faulty gps, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+gps_path_selected <- gps_path %>% filter(id %in% c("28","9"))
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+  tm_shape(gps_path_selected) +
+  tm_lines() +
+  tm_facets(by = "id")
+```
+
+
+#### Resolve data issues in GPS log
+```{r gps clean, include = TRUE, warning = FALSE}
+
+gps$Timestamp <- as.POSIXct(gps$Timestamp, 
+                                 format = "%m/%d/%Y  %H:%M:%S")
+
+# Group timestamp in intervals of 15 seconds and select the mean coordinates
+gps_28 <- gps %>%   
+            filter(id == "28") %>% 
+            mutate(Timestamp = round_date(Timestamp, "15 sec")) %>%
+            mutate(lat = round(lat - 00.004,3) ) %>% 
+            mutate(long = round(long + 00.004,3) ) %>%
+            group_by(Timestamp) %>%
+            summarise(lat = mean(lat, na.rm = FALSE), long = mean(long, na.rm = FALSE)) %>% 
+            mutate(id = "28") %>%
+            ungroup() %>% view()
+
+
+gps_sf_28 <- st_as_sf(gps_28,
+                   coords = c("long","lat"),
+                            # EPSG 4326 which stands for wgs84 geo. coord sys
+                            crs = 4326)
+
+gps_path_28 <- gps_sf_28 %>%
+            group_by(id) %>%
+            # Due to peculiar nature of group by, we need to do an action such as summarize
+            summarize(m = mean(Timestamp),
+                      do_union = FALSE) %>%
+            st_cast("LINESTRING") %>%
+            ungroup()
+
+
+gps_path_selected_28 <- gps_path_28
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+  tm_shape(gps_path_selected_28) +
+  tm_lines() +
+  tm_facets(by = "id")
+
+```
+
+#### Detect events from GPS log
+
+- To define all stops between GPS log records that spans above 5 minutes as events
 - Each event will have a time span, a location, and a person
 - Identify home of employee as the location with the location with the longest span
 
 ```{r gps prep, include = TRUE, warning = FALSE}
+# Replace gps records of Car ID 28
+gps_28 <- gps_28 %>%
+          dplyr::select(Timestamp, id, lat, long)
+
+gps_clean <- gps %>% 
+              filter(!id == "28") %>%
+              rbind(gps_28) %>% view()
 
 # Merge car assignments to gps data & sort table by id & timestamp
-gps_name <- left_join(gps,cars, by = c("id" = "CarID")) %>%
+gps_name <- left_join(gps_clean,cars, by = c("id" = "CarID")) %>%
             unite("name", FirstName, LastName, sep = " ") %>%
             arrange(id,Timestamp)
 
-# Changing timestamp in gps to just date
+# Change timestamp format in gps
 gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, 
                                  format = "%m/%d/%Y  %H:%M:%S")
 
@@ -461,6 +605,7 @@ time_diff <- tail(gps_name_temp,-1) - head(gps_name_temp,-1)
 gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
     rename(diff=...1) %>%
     group_by(id) %>%
+  
     # If interval btw timestamps is more than 5 mins, it is an event
     mutate(event_stop = ifelse(diff/60 > 5,'stop',
                           ifelse(diff/60 < 0,'stop',NA))) %>%
@@ -468,6 +613,7 @@ gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
     mutate(home = ifelse(diff/60/60 > 6,'home',NA)) %>%
     mutate(diff = seconds_to_period(diff)) %>%
     mutate(event_start = ifelse(event_start == 'stop','start',NA)) %>%
+  
     # Encode lat long into geohash    
     mutate(geohash = gh_encode(latitude = lat, 
                                longitude = long, 
@@ -475,7 +621,7 @@ gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
     ungroup()
 ```
 
-Find out the lat long of credit card events based on time frame
+#### Find out the lat long of credit card events based on time frame
 - If the transaction time is within the time span of an event, it is assigned to that event
 
 ```{r event and transactions, include = TRUE, warning = FALSE}
@@ -491,7 +637,7 @@ events <- gps_name_diff %>%
 
 # Select distinct timestamp with each location from transactions
 trans_time <-   trans_final %>% 
-                # Exclude locations with credit card posting timing issues  
+                # Exclude locations with credit card posting timing issues to reduce spurious matches
                 filter(!location %in% c("Bean There Done That","Brewed Awakenings","Jack's Magical Beans","Coffee Shack","Kronos Mart")) %>% 
                 dplyr::select(location, timestamp) %>% 
                 distinct(location, timestamp) 
@@ -503,10 +649,10 @@ events_trans <- events %>%
                 match_fun = list(`<`,`>`)) %>%
                 view()   
 
-# Prepare the matched data for visualization after dropping the matches that are less than 4
+# Prepare the matched data for visualization. 
+# We would not pick the top matches as some locations are less visited.
 POI <- events_trans %>% drop_na() %>%
                  mutate(lat = round(lat,3), long = round(long,3)) %>% 
-                 #filter(!geohash %in% c("sw3tn4k","sw3tnee")) %>% 
                  dplyr::select(location, lat, long, geohash) %>% 
                  group_by(location, lat, long, geohash) %>% 
                  summarise(n = n()) %>%
@@ -514,23 +660,14 @@ POI <- events_trans %>% drop_na() %>%
                  arrange(location, desc(n)) %>% 
                  group_by(location) %>%
                  #top_n(n = 5) %>%
-                 ungroup() %>% view()
+                 ungroup() %>% 
+                 view()
 
 ```
 
-
-### Setup the map layers 
-```{r map layers, include = FALSE, warning = FALSE}
-# Adding jpeg file into environment
-mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
-
-# Adding KML file into environment
-abila <- readOGR("data/Geospatial/Abila.kml", "Abila")
-```
-
-### Plot the events that coincide with transactions to determine the lat long of POIs
+####  Plot the events that coincide with transactions to determine the lat long of POIs
 ```{r coordinates, include = TRUE, warning = FALSE}
-#view the KML file over the jpeg map
+# view the POIs over the jpeg map
 map <- ggplot(POI, aes(long, lat, text = paste("geohash:", geohash))) + 
     
     theme(panel.border = element_blank(),
@@ -542,6 +679,7 @@ map <- ggplot(POI, aes(long, lat, text = paste("geohash:", geohash))) +
   # Add points
     geom_point(aes(size = n, color=location, alpha = 0.8))
 
+# Use ggplotly to make it interactive so we can pick the right geohash visually
 pp <- ggplotly(map)
 layout(pp, images = list(
   list(
@@ -559,12 +697,15 @@ layout(pp, images = list(
 ))
 ```
 
-We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we will visually pick out the lat/long of each POI by checking the points of each POI on the interactive map above.
+
+
+We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we visually pick out the lat/long of each POI by checking the points of each POI on the interactive map above.
 
 Most likely geohashes identified per location:
+
 - Abila Airport: sw3thfv
 - Abila Scrapyard: sw3tjrh
-- Abila Zacharo: sw3tjsm
+- Abila Zacharo: sw3tjmp
 - Ahaggo Museum: sw3tnpd
 - Albert's Fine Clothing: sw3tjxs
 - Bean There Done That: sw3tm2r
@@ -573,18 +714,18 @@ Most likely geohashes identified per location:
 - Chostus Hotel: sw3tnw2
 - Coffee Cameleon: sw3tn7s
 - Coffee Shack: sw3tjxs
-- Desafio Golf Course: sw3tm9z
+- Desafio Golf Course: sw3tm9y
 - Frank's Fuel: sw3tjq8
 - Frydos Autosupply n' More: sw3tnsx (uncertain - multiple points)
 - GAStech: sw3tn4k
 - Gelatogalore: sw3tjsm
 - General Grocer: sw3tjse
-- Guy's Gyros: sw3tnet (uncertain - multiple points)
+- Guy's Gyros: sw3tnev (uncertain - multiple points)
 - Hallowed Grounds: sw3tnm1
 - Hippokampos: sw3tjxs
 - Jack's Magic Beans: sw3tnjb
 - Kalami Kafenion: sw3tjt8
-- Katerina's Cafe: sw3tnev (uncertain - multiple points)
+- Katerina's Cafe: sw3tnee (uncertain - multiple points)
 - Kronos Mart: sw3tjmx
 - Kronos Pipe and Irrigation: sw3tjj6
 - Maximum Iron and Steel: sw3tjm2
@@ -596,6 +737,39 @@ Most likely geohashes identified per location:
 - Stewart and Sons Fabrication: sw3tng3
 - U-Pump: sw3tjvy
 
+
+```{r coordinates, include = TRUE, warning = FALSE}
+# view the POIs over the jpeg map
+test <- filter(events_trans, id == "28")
+map <- ggplot(test, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=location, alpha = 0.8))
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.7,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
 ```{r include = TRUE, warning = FALSE}
 # Create a config table of the POI with its most likely geohash
 POI_geohash <- tibble(location = c("Abila Airport","Abila Scrapyard","Abila Zacharo","Ahaggo Museum","Albert's Fine Clothing",
@@ -605,88 +779,48 @@ POI_geohash <- tibble(location = c("Abila Airport","Abila Scrapyard","Abila Zach
                                    "Jack's Magic Beans","Kalami Kafenion","Katerina's Cafe","Kronos Mart","Kronos Pipe and Irrigation",
                                    "Maximum Iron and Steel","Nationwide Refinery","Octavio's Office Supplies","Ouzeri Elian","Roberts and Sons",
                                    "Shoppers' Delight","Stewart and Sons Fabrication","U-Pump"),
-                      geohash = c("sw3thfv","sw3tjrh","sw3tjsm","sw3tnpd","sw3tjxs",
-                                  "sw3tm2r","sw3tnek","sw3tnhm","sw3tnw2","sw3tn7s",
-                                  "sw3tjxs","sw3tm9z","sw3tjq8","sw3tnsx","sw3tn4k",
-                                  "sw3tjsm","sw3tjse","sw3tnet","sw3tnm1","sw3tjxs",
-                                  "sw3tnjb","sw3tjt8","sw3tnev","sw3tjmx","sw3tjj6",
-                                  "sw3tjm2","sw3tnk1","sw3tjsm","sw3tjgn","sw3tjt0",
-                                  "sw3tjgh","sw3tng3","sw3tjvy")) %>% 
+                      geohash_likely = c("sw3thfv","sw3tjrh","sw3tjmp","sw3tnpd","sw3tjxs",
+                                        "sw3tm2r","sw3tnek","sw3tnhm","sw3tnw2","sw3tn7s",
+                                        "sw3tjxs","sw3tm9y","sw3tjq8","sw3tnsx","sw3tn4k",
+                                        "sw3tjsm","sw3tjse","sw3tnev","sw3tnm1","sw3tjxs",
+                                        "sw3tnjb","sw3tjt8","sw3tnee","sw3tjmx","sw3tjj6",
+                                        "sw3tjm2","sw3tnk1","sw3tjsm","sw3tjgn","sw3tjt0",
+                                        "sw3tjgh","sw3tng3","sw3tjvy")) %>% 
                 view()
 
+```
+
+```{r include = TRUE, warning = FALSE}
 # Fuzzy match of events and transactions by time windows
-events_trans <- events %>% 
-                fuzzy_left_join(trans_time, 
-                by = c("event_start_time" = "timestamp", "event_stop_time" = "timestamp"),
-                match_fun = list(`<`,`>`)) %>%
-                view()  
+events_trans_2 <- events_trans %>% 
+                drop_na() %>% 
+                left_join(POI_geohash, by = "location") %>%   
+                filter(geohash == geohash_likely) %>% 
+                dplyr::select(!timestamp) %>%
+                distinct() %>%
+                view()   
+
+```
+
+Plot heatmap of events by id
+```{r include = TRUE, warning = FALSE}
+# Unknown places + Home + POI 
+
+# Plot event timeline
+event_timeline <- events_trans_2 %>%
+                  
+# Plot event data as heatmap
+heatmap_cc <- ggplot(events_trans_2, aes(x= event_stop_time, y = name, color = location)) +
+              theme_minimal() +
+              geom_tile(colour="white") +
+              labs(x = "Time", y = "Name") +
+
+ggplotly(heatmap_cc)                   
 
 ```
 
 
 
-
-### Import MC2-tourist.tif created using QGIS
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-ap <- raster("data/Geospatial/MC2-tourist.tif")
-ap
-```
-### Plotting raster layer using tmap to merge rgb bands
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-tm_shape(ap) +
-tm_rgb(ap, r=1,g=2,b=3,
-       alpha = NA,
-       saturation = 1,
-       interpolate = TRUE,
-       max.value = 255)
-```
-
-### Use sf to import Vector GIS data files in ESRI shapefile format
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-abila_st <- st_read(dsn = "data/Geospatial",
-                    layer = "Abila")
-```
-
-### Converting aspatial data into simple feature data frame using st_as_sf
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-gps_sf <- st_as_sf(gps,
-                   coords = c("long","lat"),
-                            # EPSG 4326 which stands for wgs84 geo. coord sys
-                            crs = 4326)
-gps_sf
-```
-
-### Creating movement path from GPS points
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-gps_path <- gps_sf %>%
-            group_by(id) %>%
-            # Due to peculiar nature of group by, we need to do an action such as summarize
-            summarize(m = mean(Timestamp),
-                      do_union = FALSE) %>%
-            st_cast("LINESTRING") %>%
-            ungroup()
-            
-gps_path
-# Have to slice the paths by days, or time period to derive meaningful paths
-```
-
-### Plotting the gps paths
-```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-gps_path_selected <- gps_path %>% 
-                     filter (id==1)
-
-tmap_mode("view")
-
-tm_shape(ap) +
-  tm_rgb(ap, r=1,g=2,b=3,
-         alpha = NA,
-         saturation = 1,
-         interpolate = TRUE,
-         max.value = 255) +
-  tm_shape(gps_path_selected) +
-  tm_lines()
-
-```
 
 ## Insights and Conlusions
 
