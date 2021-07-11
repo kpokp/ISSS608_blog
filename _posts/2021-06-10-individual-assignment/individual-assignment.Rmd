@@ -471,15 +471,15 @@ gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
     # Encode lat long into geohash    
     mutate(geohash = gh_encode(latitude = lat, 
                                longitude = long, 
-                               precision = 7L))
+                               precision = 7L)) %>%
+    ungroup()
 ```
 
 Find out the lat long of credit card events based on time frame
 - If the transaction time is within the time span of an event, it is assigned to that event
 
-```{r include = TRUE, warning = FALSE}
-trans_final %>% filter(location == "Abila Airport") %>% view()
-
+```{r event and transactions, include = TRUE, warning = FALSE}
+# Select events that are not staying at home by excluding home
 events <- gps_name_diff %>% 
           filter(event_stop == "stop") %>%
           filter(is.na(home)) %>%
@@ -489,19 +489,38 @@ events <- gps_name_diff %>%
                         diff, lat, long, geohash, id, name) %>%
           view()
 
-events %>% filter(event_start_time < as_date_time(2014-01-06 08:23:00),
-                  event_stop_time > 2014-01-06 08:23:00) %>%
-          view()              
+# Select distinct timestamp with each location from transactions
+trans_time <-   trans_final %>% 
+                # Exclude locations with credit card posting timing issues  
+                filter(!location %in% c("Bean There Done That","Brewed Awakenings","Jack's Magical Beans","Coffee Shack","Kronos Mart")) %>% 
+                dplyr::select(location, timestamp) %>% 
+                distinct(location, timestamp) 
+               
+# Fuzzy match of events and transactions by time windows
+events_trans <- events %>% 
+                fuzzy_left_join(trans_time, 
+                by = c("event_start_time" = "timestamp", "event_stop_time" = "timestamp"),
+                match_fun = list(`<`,`>`)) %>%
+                view()   
+
+# Prepare the matched data for visualization after dropping the matches that are less than 4
+POI <- events_trans %>% drop_na() %>%
+                 mutate(lat = round(lat,3), long = round(long,3)) %>% 
+                 #filter(!geohash %in% c("sw3tn4k","sw3tnee")) %>% 
+                 dplyr::select(location, lat, long, geohash) %>% 
+                 group_by(location, lat, long, geohash) %>% 
+                 summarise(n = n()) %>%
+                 ungroup() %>% 
+                 arrange(location, desc(n)) %>% 
+                 group_by(location) %>%
+                 #top_n(n = 5) %>%
+                 ungroup() %>% view()
 
 ```
 
 
-
-
-
 ### Setup the map layers 
-
-```{r include = FALSE, warning = FALSE}
+```{r map layers, include = FALSE, warning = FALSE}
 # Adding jpeg file into environment
 mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
 
@@ -509,33 +528,20 @@ mc2 <- jpeg::readJPEG("images/MC2-tourist.jpg", native = TRUE)
 abila <- readOGR("data/Geospatial/Abila.kml", "Abila")
 ```
 
-```{r include = TRUE, warning = FALSE}
+### Plot the events that coincide with transactions to determine the lat long of POIs
+```{r coordinates, include = TRUE, warning = FALSE}
 #view the KML file over the jpeg map
-map <- ggplot(gps_name_diff %>%
-                    filter(id == "1", start == "start"),
-                  aes(long, lat)) + 
+map <- ggplot(POI, aes(long, lat, text = paste("geohash:", geohash))) + 
     
-  # Add image background  
-   #annotation_custom(rasterGrob(mc2,
-    #width = unit(1, "npc"),
-    #height = unit(1,"npc")),
-    #xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) +
-  # Remove background and grids and reformat scales and axis
     theme(panel.border = element_blank(),
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank(), 
     panel.background = element_blank(),
     axis.line = element_line(colour = "grey")) +
-  # Add KML layer  
-    geom_path(data = abila, aes(x = long, y = lat, group = group))  +
-    coord_quickmap() +
 
   # Add points
-    geom_point(size = 1, color='red') 
-map
-```
+    geom_point(aes(size = n, color=location, alpha = 0.8))
 
-```{r layout="l-page", include = TRUE, warning = FALSE, fig.width=12, fig.height=7}
 pp <- ggplotly(map)
 layout(pp, images = list(
   list(
@@ -551,32 +557,73 @@ layout(pp, images = list(
     sizey= 0.05
   )
 ))
-
 ```
 
+We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we will visually pick out the lat/long of each POI by checking the points of each POI on the interactive map above.
+
+Most likely geohashes identified per location:
+- Abila Airport: sw3thfv
+- Abila Scrapyard: sw3tjrh
+- Abila Zacharo: sw3tjsm
+- Ahaggo Museum: sw3tnpd
+- Albert's Fine Clothing: sw3tjxs
+- Bean There Done That: sw3tm2r
+- Brew've Been Served: sw3tnek 
+- Carlyle Chemical Inc.: sw3tnhm
+- Chostus Hotel: sw3tnw2
+- Coffee Cameleon: sw3tn7s
+- Coffee Shack: sw3tjxs
+- Desafio Golf Course: sw3tm9z
+- Frank's Fuel: sw3tjq8
+- Frydos Autosupply n' More: sw3tnsx (uncertain - multiple points)
+- GAStech: sw3tn4k
+- Gelatogalore: sw3tjsm
+- General Grocer: sw3tjse
+- Guy's Gyros: sw3tnet (uncertain - multiple points)
+- Hallowed Grounds: sw3tnm1
+- Hippokampos: sw3tjxs
+- Jack's Magic Beans: sw3tnjb
+- Kalami Kafenion: sw3tjt8
+- Katerina's Cafe: sw3tnev (uncertain - multiple points)
+- Kronos Mart: sw3tjmx
+- Kronos Pipe and Irrigation: sw3tjj6
+- Maximum Iron and Steel: sw3tjm2
+- Nationwide Refinery: sw3tnk1 
+- Octavio's Office Supplies: sw3tjsm
+- Ouzeri Elian: sw3tjgn
+- Roberts and Sons: sw3tjt0
+- Shoppers' Delight: sw3tjgh
+- Stewart and Sons Fabrication: sw3tng3
+- U-Pump: sw3tjvy
 
 ```{r include = TRUE, warning = FALSE}
-# Mapping map and gps together specifically for CarID #1
-mapping <- ggplot(gps_name %>%
-                    filter(id == "1"),
-                  aes(long, lat)) +
-    annotation_custom(rasterGrob(mc2,
-    width = unit(1, "npc"),
-    height = unit(1,"npc")),
-    xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
-    geom_point(size = 0.1) + 
-    coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + 
+# Create a config table of the POI with its most likely geohash
+POI_geohash <- tibble(location = c("Abila Airport","Abila Scrapyard","Abila Zacharo","Ahaggo Museum","Albert's Fine Clothing",
+                                   "Bean There Done That","Brew've Been Served","Carlyle Chemical Inc.","Chostus Hotel","Coffee Cameleon",
+                                   "Coffee Shack", "Desafio Golf Course","Frank's Fuel","Frydos Autosupply n' More","GAStech",
+                                   "Gelatogalore","General Grocer","Guy's Gyros","Hallowed Grounds","Hippokampos",
+                                   "Jack's Magic Beans","Kalami Kafenion","Katerina's Cafe","Kronos Mart","Kronos Pipe and Irrigation",
+                                   "Maximum Iron and Steel","Nationwide Refinery","Octavio's Office Supplies","Ouzeri Elian","Roberts and Sons",
+                                   "Shoppers' Delight","Stewart and Sons Fabrication","U-Pump"),
+                      geohash = c("sw3thfv","sw3tjrh","sw3tjsm","sw3tnpd","sw3tjxs",
+                                  "sw3tm2r","sw3tnek","sw3tnhm","sw3tnw2","sw3tn7s",
+                                  "sw3tjxs","sw3tm9z","sw3tjq8","sw3tnsx","sw3tn4k",
+                                  "sw3tjsm","sw3tjse","sw3tnet","sw3tnm1","sw3tjxs",
+                                  "sw3tnjb","sw3tjt8","sw3tnev","sw3tjmx","sw3tjj6",
+                                  "sw3tjm2","sw3tnk1","sw3tjsm","sw3tjgn","sw3tjt0",
+                                  "sw3tjgh","sw3tng3","sw3tjvy")) %>% 
+                view()
 
-# Fixing the scales regardless of filtering of points
-    theme_bw() + theme(panel.border = element_blank(),
+# Fuzzy match of events and transactions by time windows
+events_trans <- events %>% 
+                fuzzy_left_join(trans_time, 
+                by = c("event_start_time" = "timestamp", "event_stop_time" = "timestamp"),
+                match_fun = list(`<`,`>`)) %>%
+                view()  
 
-# Remove background and grids and reformat scales and axis
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank(), 
-    axis.line = element_line(colour = "black"))  
- 
-mapping
 ```
+
+
 
 
 ### Import MC2-tourist.tif created using QGIS
@@ -616,7 +663,9 @@ gps_path <- gps_sf %>%
             # Due to peculiar nature of group by, we need to do an action such as summarize
             summarize(m = mean(Timestamp),
                       do_union = FALSE) %>%
-            st_cast("LINESTRING")
+            st_cast("LINESTRING") %>%
+            ungroup()
+            
 gps_path
 # Have to slice the paths by days, or time period to derive meaningful paths
 ```
