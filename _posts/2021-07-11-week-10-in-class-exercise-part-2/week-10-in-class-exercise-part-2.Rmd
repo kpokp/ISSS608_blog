@@ -141,3 +141,17 @@ wordcloud(words_by_newsgroup$word,
 
 ```
 
+### Visualize the data using gg word cloud
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+# Form wordcloud
+
+words_by_newsgroup %>%
+  filter(n > 0) %>%
+  ggplot(aes(label = word,
+             size = n)) +
+  geom_text_wordcloud() +
+  theme_minimal() +
+  facet_wrap(~newsgroup)
+
+```
+
