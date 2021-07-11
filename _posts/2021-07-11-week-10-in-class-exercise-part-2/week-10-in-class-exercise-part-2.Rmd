@@ -120,15 +120,24 @@ usenet_words <- cleaned_text %>%
                 filter(str_detect(word, "[a-z']$"),
                        !word %in% stop_words$word)
 
+usenet_words %>% 
+  count(word, sort = TRUE)
+
+words_by_newsgroup <- usenet_words %>%
+                       count(newsgroup, word, sort = TRUE) %>%
+                       ungroup()
 
 ```
 
 
 ## Visualizing text data
 
-### Visualize the data using cccc
+### Visualize the data using word cloud
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
-# xx
+# Form wordcloud
+wordcloud(words_by_newsgroup$word,
+          words_by_newsgroup$n,
+          max.words = 300)
 
 ```
 
