@@ -114,7 +114,11 @@ cleaned_text <- cleaned_text %>%
 ### Tokenization - extract words out of the string of text
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 # Split a column into tokens using unnest_tokens
-
+# Remove stop-words e.g.“the”, “of”, “to” that are not useful for analysis
+usenet_words <- cleaned_text %>%
+                unnest_tokens(word,text) %>% 
+                filter(str_detect(word, "[a-z']$"),
+                       !word %in% stop_words$word)
 
 
 ```
