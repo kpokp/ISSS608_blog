@@ -1,5 +1,5 @@
 ---
-title: "Week 10 In-Class Exercise 2"
+title: "TIL: Week 10 In-Class Exercise 2"
 description: |
   Today I learnt in class: How to use different R packages to visualize text using different methods such as tag cloud and word tree. 
 author:
@@ -145,6 +145,8 @@ wordcloud(words_by_newsgroup$word,
 ```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
 # Form wordcloud
 
+set.seed(1234)
+
 words_by_newsgroup %>%
   filter(n > 0) %>%
   ggplot(aes(label = word,
@@ -155,3 +157,13 @@ words_by_newsgroup %>%
 
 ```
 
+
+### TF-IDF - term frequency-inverse document frequency to reflect how important a word is to a document in a collection of corpus
+```{r echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+# Computing tf-idf within newsgroup
+
+tf_idf <- words_by_newsgroup %>%
+          bind_tf_idf(word, newsgroup, n) %>%
+          arrange(desc(tf_idf))
+
+```
