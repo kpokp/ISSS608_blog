@@ -34,6 +34,23 @@
     "input_file": {}
   },
   {
+    "path": "posts/2021-07-11-week-10-in-class-exercise-part-2/",
+    "title": "Week 10 In-Class Exercise 2",
+    "description": "Today I learnt in class: How to use different R packages to visualize text using different methods such as tag cloud and word tree.",
+    "author": [
+      {
+        "name": "Kelly Koh",
+        "url": "https://www.linkedin.com/in/kellykkw/"
+      }
+    ],
+    "date": "2021-07-11",
+    "categories": [],
+    "contents": "\r\n\r\nContents\r\nInstall packages and loading data\r\nInstall the necessary packages if they are not in library\r\n\r\nData cleaning\r\nImport data from csv and preview data\r\nImport data from csv and preview data\r\n\r\nVisualizing text data\r\nVisualize the data using cccc\r\n\r\n\r\nInstall packages and loading data\r\nInstall the necessary packages if they are not in library\r\n\r\n\r\npackages = c('tidyverse','DT',\r\n             # Handling time variables\r\n             'lubridate','hms',\r\n             # Text analytics\r\n             'tidytext','tidyverse','widyr','wordcloud',\r\n             'ggwordcloud','textplot','igraph','ggraph')\r\n\r\nfor (p in packages) {\r\n  if(!require(p, character.only = T)){\r\n    install.packages(p)\r\n  }\r\n  library(p, character.only = T)\r\n}\r\n\r\n\r\n\r\nData cleaning\r\nImport data from csv and preview data\r\n\r\n\r\ndata_2001 <- read_csv(\"data/csv-2001-2131.csv\")\r\n\r\n# Create a folder list\r\nnews20 <- \"data/20news/\"\r\n\r\n# Define function to read all files from a folder into a data frame\r\nread_folder <- function(infolder) {\r\n    tibble(file = dir(infolder,\r\n                      full.names = TRUE)) %>%\r\n    mutate(text = map(file,\r\n                      read_lines)) %>%\r\n    transmute(id = basename(file),\r\n                   text) %>%\r\n    unnest(text)\r\n}\r\n\r\n# Read in all the messages from the 20news folder\r\nraw_text <- tibble(folder =\r\n                     dir(news20,\r\n                         full.names = TRUE)) %>%\r\n            # map is part of the tidy R package\r\n            mutate(folder_out = map(folder,\r\n                                    read_folder)) %>%\r\n            unnest(cols = c(folder_out)) %>%\r\n            transmute(newsgroup = basename(folder),\r\n                      id, text)\r\n\r\nwrite_rds(raw_text,\"data/rds/news20.rds\")\r\n\r\n\r\n\r\nImport data from csv and preview data\r\n\r\n\r\nraw_text %>%\r\n  group_by(newsgroup) %>%\r\n  summarize(messages = n_distinct(id)) %>%\r\n  ggplot(aes(messages, newsgroup)) +\r\n  geom_col(fill = \"lightblue\") +\r\n  labs(y = NULL)\r\n\r\n\r\n\r\n\r\nVisualizing text data\r\nVisualize the data using cccc\r\n\r\n\r\n# xx\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+    "preview": "posts/2021-07-11-week-10-in-class-exercise-part-2/week-10-in-class-exercise-part-2_files/figure-html5/unnamed-chunk-3-1.png",
+    "last_modified": "2021-07-11T20:07:44+08:00",
+    "input_file": "week-10-in-class-exercise-part-2.knit.md"
+  },
+  {
     "path": "posts/2021-07-03-week-9-in-class-exercise/",
     "title": "TIL: Week 9 In-Class Exercise",
     "description": "Today I learnt in class: How to use plotly to plot interactive charts and crosstalk to link charts/data tables. And we also go deeper into visualization of geospatial data using sf, raster, and tmap functions.",

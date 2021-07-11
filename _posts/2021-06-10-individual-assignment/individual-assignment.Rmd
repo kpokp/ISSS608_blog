@@ -810,10 +810,10 @@ Plot heatmap of events by id
 event_timeline <- events_trans_2 %>%
                   
 # Plot event data as heatmap
-heatmap_cc <- ggplot(events_trans_2, aes(x= event_stop_time, y = name, color = location)) +
+heatmap_cc <- 
+  ggplot(events_trans_2, aes(x= event_stop_time, y = name, color = location)) +
               theme_minimal() +
-              geom_tile(colour="white") +
-              labs(x = "Time", y = "Name") +
+              geom_point() 
 
 ggplotly(heatmap_cc)                   
 
