@@ -1,5 +1,22 @@
 [
   {
+    "path": "posts/2021-07-17-week-11-in-class-exercise/",
+    "title": "TIL: Week 11 In-Class Exercise",
+    "description": "Today I learnt in class: How to build a R Shiny app.",
+    "author": [
+      {
+        "name": "Kelly Koh",
+        "url": "https://www.linkedin.com/in/kellykkw/"
+      }
+    ],
+    "date": "2021-07-17",
+    "categories": [],
+    "contents": "\r\n\r\nContents\r\nInstall packages and loading data\r\nInstall the necessary packages if they are not in library\r\n\r\nData cleaning\r\nImport data from csv and preview data\r\n\r\nXX\r\nXXX\r\n\r\n\r\nInstall packages and loading data\r\nInstall the necessary packages if they are not in library\r\n\r\n\r\npackages = c('tidyverse','DT',\r\n             # Handling time variables\r\n             'lubridate','hms',\r\n             # Text analytics\r\n             'tidytext','tidyverse','widyr','wordcloud',\r\n             'ggwordcloud','textplot','igraph','ggraph')\r\n\r\nfor (p in packages) {\r\n  if(!require(p, character.only = T)){\r\n    install.packages(p)\r\n  }\r\n  library(p, character.only = T)\r\n}\r\n\r\n\r\n\r\nData cleaning\r\nImport data from csv and preview data\r\n\r\n\r\nexam_data <- read_csv(\"data/exam_data.csv\")\r\n\r\n\r\n\r\nXX\r\nXXX\r\n\r\n\r\n\r\n",
+    "preview": {},
+    "last_modified": "2021-07-17T09:26:37+08:00",
+    "input_file": "week-11-in-class-exercise.knit.md"
+  },
+  {
     "path": "posts/2021-07-11-week-10-in-class-exercise-part-2/",
     "title": "TIL: Week 10 In-Class Exercise 2",
     "description": "Today I learnt in class: How to use different R packages to visualize text using different methods such as tag cloud and word tree.",

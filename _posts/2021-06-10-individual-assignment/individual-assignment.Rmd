@@ -18,6 +18,15 @@ output:
     self_contained: false
 ---
 
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(fig.retina = 3,
+                      echo = FALSE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
 ## Background
 
 ### Vast Challenge 2021 - The Kronos Incident
@@ -50,10 +59,8 @@ packages = c(
               'tidyverse', 'DT', 'fuzzyjoin',
               # Manipulate time and date variables
               'lubridate', 'clock',
-              # Find anomaly in time-series data
-              'timetk',
-              # Plot heat maps, path and scatter plot graphs
-              'ggplot2', 'igraph',
+              # Plot heat maps, gantt, parallel coordinates and scatter plot graphs
+              'ggplot2', 'igraph', 'ggrepel' , 'ggally',
               # Plot interactive network graph
               'visNetwork',
               # Add interactivity to ggplot charts
@@ -146,35 +153,6 @@ cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe"
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe"
 ```
 
-#### Assign categories to add semantics to 34 points-of-interest (POI)
-
-```{r POI category, warning=FALSE, include=TRUE, paged.print=TRUE}
-food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
-          "Brewed Awakenings","Coffee Cameleon","Coffee Shack","Gelatogalore",
-          "Guy's Gyros", "Hallowed Grounds","Hippokampos","Jack's Magical Beans", 
-          "Kalami Kafenion", "Katerina's Cafe","Ouzeri Elian")
-retail <- c("Albert's Fine Clothing","Daily Dealz","General Grocer","Kronos Mart",
-            "Roberts and Sons", "Shoppers' Delight")
-gas <- c("Frank's Fuel","U-Pump")
-leisure <- c("Abila Airport","Ahaggo Museum","Chostus Hotel","Desafio Golf Course")
-company <- c("Abila Scrapyard","Carlyle Chemical Inc.","Frydos Autosupply n' More",
-             "Kronos Pipe and Irrigation","Maximum Iron and Steel",
-             "Nationwide Refinery","Octavio's Office Supplies","Stewart and Sons Fabrication")
-
-cc %>% mutate(category = 
-                    ifelse(location %in% food, "Food",
-                    ifelse(location %in% retail, "Retail",
-                    ifelse(location %in% gas, "Gas",
-                    ifelse(location %in% leisure, "Leisure",
-                    ifelse(location %in% company, "Company", NA)))))) 
-
-loyalty %>% mutate(category = 
-                    ifelse(location %in% food, "Food",
-                    ifelse(location %in% retail, "Retail",
-                    ifelse(location %in% gas, "Gas",
-                    ifelse(location %in% leisure, "Leisure",
-                    ifelse(location %in% company, "Company", NA)))))) 
-```
 
 #### Check credit card transactions postings by locations by hour for patterns
 
@@ -183,7 +161,8 @@ loyalty %>% mutate(category =
 cc_hour <- cc %>% mutate(hour_cc = as.character.numeric_version(get_hour(timestamp))) %>% 
                   group_by(location,hour_cc) %>% 
                   count() %>%
-                  rename("transactions" = n)
+                  rename("transactions" = n) %>%
+                  ungroup()
 
 # Plot cc hourly data as heatmap
 heatmap_cc <- ggplot(cc_hour, aes(x= hour_cc, y = location, fill = transactions)) +
@@ -229,7 +208,8 @@ pairs <- transact %>% group_by(last4ccnum, loyaltynum) %>%
              # Remove 6 spurious matches
              filter(n>1) %>%
              drop_na() %>%
-             arrange(last4ccnum,loyaltynum) %>% 
+             arrange(last4ccnum,loyaltynum) %>%
+             ungroup() %>%
              view()
 ```
 
@@ -277,12 +257,14 @@ edges <- dplyr::select(edges, from, to, weight) %>%
 #### Plot network graph to show cc and loyalty cards relationship
 
 ```{r network graph of txn, warning=FALSE, include=TRUE, paged.print=TRUE}
-visNetwork(nodes, edges, width = "100%", main = "Credit Card and Loyalty Card Relationships") %>% 
+visNetwork(nodes, edges, width = "100%", main = list(text = "Relationship Between Credit Card and Loyalty Cards",
+ style = "font-family:arial;font-size:20px;")) %>% 
   visOptions(highlightNearest = TRUE, nodesIdSelection = list(enabled = TRUE,
                                                               selected = "74")) %>% 
   visGroups(groupname = "cc", color = "lightblue") %>%    
   visGroups(groupname = "loyalty", color = "orange") %>% 
-  visLegend(width = 0.1, position = "right", main = "Group")
+  visLegend(width = 0.1, position = "right", main = list(text = "Card Types",
+ style = "font-family:arial;font-size:15px;"))
 ```
 
 
@@ -606,44 +588,227 @@ gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
     rename(diff=...1) %>%
     group_by(id) %>%
   
-    # If interval btw timestamps is more than 5 mins, it is an event
+    # If interval btw timestamps is more than 5 mins, tag as an event
     mutate(event_stop = ifelse(diff/60 > 5,'stop',
                           ifelse(diff/60 < 0,'stop',NA))) %>%
     mutate(event_start = lead(event_stop)) %>% 
-    mutate(home = ifelse(diff/60/60 > 6,'home',NA)) %>%
+  
+    # If interval between timestamps is more than 5 hours, tag as home to help identify home locations later
+    mutate(home = ifelse(diff/60/60 > 5,'home',NA)) %>%
     mutate(diff = seconds_to_period(diff)) %>%
     mutate(event_start = ifelse(event_start == 'stop','start',NA)) %>%
   
-    # Encode lat long into geohash    
+    # Encode lat long into geohash level 7    
     mutate(geohash = gh_encode(latitude = lat, 
                                longitude = long, 
                                precision = 7L)) %>%
     ungroup()
 ```
 
+#### Create table that captures all events 
+- These locations would be later identified as home, places of interest, or suspicious locations. 
+
+```{r events, include = TRUE, warning = FALSE}
+# 3068 events that span more than 5 minutes
+events <- gps_name_diff %>% 
+          filter(event_stop == "stop") %>%
+          mutate(event_start_time = Timestamp - diff) %>%
+          rename(event_stop_time = Timestamp) %>% 
+          mutate(event_date = as_date(event_start_time)) %>% 
+          dplyr::select(event_stop, home,event_date, event_start_time, event_stop_time,
+                        diff, lat, long, geohash, id, name) %>%
+          filter(diff > 0) %>%
+          view()
+
+glimpse(events)
+
+```
+
+#### Create a factor to capture the sequence to feature the employees
+```{r id level, include = TRUE, warning = FALSE}
+id_level <- gps_name %>% 
+            distinct(id) %>%
+            mutate(id = as.numeric(id)) %>%
+            arrange(id) %>%
+            mutate(id = as.factor(id)) %>%
+            view()
+```
+
+#### Identify home locations of employees
+```{r home events, include = TRUE, warning = FALSE}
+# Identify homes or place of accommodation of employees - 501 events
+home <-   events %>% 
+          filter(home == "home") %>%
+          view()
+
+# view the home locations over the jpeg map
+map <- ggplot(home, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=id, alpha = 0.8))
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.7,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+
+From the interactive map, we observe that some of the employees stay together e.g. employees with Car ID 30, 22 and 23. 
+
+Furthermore, due to GPS issues, employee with Car ID 28 has home locations spread around a concentrated area, while employee with Car ID 9 spreads out over a wider area. 
+
+We also noticed that we picked up GASTech as a location especially for truck drivers, who parks their vehicles at the company at the end of their work day.
+
+#### Identify likely geohash of employees' homes locations 
+```{r home config, include = TRUE, warning = FALSE}
+location_labels_home <-  home %>% 
+                mutate(location = ifelse(geohash == "sw3tn4k", "GASTech",
+                ifelse(geohash == "sw3tnjw", "Home 1",
+                ifelse(geohash == "sw3tm9n", "Home 2",
+                ifelse(geohash == "sw3tm9k", "Home 3",
+                ifelse(geohash == "sw3tjzz", "Home 4",
+                ifelse(geohash == "sw3tnjg","Home 5",
+                ifelse(geohash == "sw3tnkr","Home 6/25/29",
+                ifelse(geohash == "sw3tmbc","Home 7",
+                ifelse(geohash == "sw3tnmc","Home 8",
+                ifelse(geohash %in% c("sw3tm2r","sw3tm8g"),"Home 9",
+                ifelse(geohash == "sw3tjzd","Home 10",
+                ifelse(geohash == "sw3tm8v","Home 11",
+                ifelse(geohash %in% c("sw3tntg","sw3tntf"),"Home 12",
+                ifelse(geohash == "sw3tnsx","Home 13/15/16/21",
+                ifelse(geohash %in% c("sw3tnt0"),"Home 14/18",
+                ifelse(geohash == "sw3tnsf","Home 17/24/33",
+                ifelse(geohash == "sw3tm9e","Home 19",
+                ifelse(geohash == "sw3tnts","Home 20",
+                ifelse(geohash %in% c("sw3tnsh"),"Home 22/23/30",
+                ifelse(geohash %in% c("sw3tnqb","sw3tnnz"),"Home 26",
+                ifelse(geohash == "sw3tnq0","Home 27",
+                ifelse(geohash %in% c("sw3tnnj","sw3tnnh"),"Home 28",
+                ifelse(geohash == "sw3tnw2","Chostus Hotel",
+                ifelse(geohash == "sw3tnn9","Home 32",
+                ifelse(geohash == "sw3tntv","Home 34",
+                ifelse(geohash == "sw3tnp3","Home 35", NA))))))))))))))))))))))))))) %>%
+                drop_na() %>%
+                group_by(location) %>%
+                slice_head() %>%
+                ungroup() %>% 
+                mutate(category = ifelse(location == "GASTech", "Company", 
+                                  ifelse(location == "Chostus Hotel", "Leisure","Home"))) %>%
+                dplyr::select("lat","long","geohash","location","category") %>%
+                view()
+```
+
+#### Identify anomalies from home stays
+```{r home matched, include = TRUE, warning = FALSE}
+# Match home events to home config table based on 150m radius and no duplicate was introduced - 494 events matched
+# Unknown locations will be investigated
+home_matched <- home %>% 
+                geo_left_join(location_labels_home, by = c("lat", "long"), max_dist = 0.15, distance_col = "distance", unit = c("km")) %>% 
+                # Assume employee with car ID 9 to be home
+                mutate(location = ifelse(id == 9, "Home 9",location)) %>%
+                view()
+
+# Custome theme for clean Gantt Chart
+theme_gantt <- function(base_size=11, base_family="Source Sans Pro Light") {
+  ret <- theme_bw(base_size, base_family) %+replace%
+    theme(panel.background = element_rect(fill="#ffffff", colour=NA),
+          axis.title.x=element_text(vjust=-0.2), axis.title.y=element_text(vjust=1.5),
+          title=element_text(vjust=1.2, family="Source Sans Pro Semibold"),
+          panel.border = element_blank(), axis.line=element_blank(),
+          panel.grid.minor=element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.major.x = element_line(size=0.5, colour="grey80"),
+          axis.ticks=element_blank(),
+          legend.position="bottom", 
+          axis.title=element_text(size=rel(0.8), family="Source Sans Pro Semibold"),
+          strip.text=element_text(size=rel(1), family="Source Sans Pro Semibold"),
+          strip.background=element_rect(fill="#ffffff", colour=NA),
+          panel.spacing.y=unit(1.5, "lines"),
+          legend.key = element_blank())
+  
+  ret
+  }
+
+# Convert data to long format for ggplot
+# home_matched_long <- home_matched %>%
+                #dplyr::select(id, event_start_time, event_stop_time, location) %>%
+                #gather(date.type, id.date, -c(location, id)) %>%
+                #arrange(date.type, id.date) %>%
+                #mutate(id = factor(id, levels=rev(unique(id)))) %>% view()
+# Build plot
+#home_timeline <- ggplot(home_matched_long, aes(x=id, y=id.date, colour=location)) + 
+  #geom_line(size=1) + 
+  #guides(colour=guide_legend(title=NULL)) +
+  #labs(x=NULL, y=NULL) + coord_flip() +
+  #scale_y_date(date_breaks="1 day", labels=date_format("%b ‘%y")) +
+  #theme_gantt() + theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  #geom_point()
+
+# Make gantt chart interactive
+#ggplotly(home_timeline)
+  
+# Plot timeline data as gantt chart
+home_timeline <- qplot(ymin = event_start_time,
+                    ymax = event_stop_time, 
+                    x = id,
+                    color = location,
+                    geom = "linerange",
+                    data = home_matched,
+                    size = I(1)) +
+              coord_flip() +
+              ggtitle("Timeline") +
+              scale_y_datetime(date_breaks="1 day") + 
+              theme_gantt() + theme(axis.text.x=element_text(angle=45, hjust=1))
+
+# Make gantt chart interactive
+ggplotly(home_timeline)
+  
+```
+
+From the timeline above, we observe some activities that stand out that we will investigate further, 
+- ID 1 was not home for 2 nights (6 Jan and 8 Jan)
+- ID 16 was staying overnight in Aliba starting 7 Jan 
+- ID 21 visited 2 homes from 10 Jan and visited an unknown location subsequently. Home location was also not detected on night of 16 Jan.
+- ID 31 was only in Aliba for 4day-3nights (16 to 20 Jan) in the Chostus hotel
+- Selected trucks were only parked at Aliba from 6 Jan to 16 Jan, and they are parked at the GASTech building
+
+
 #### Find out the lat long of credit card events based on time frame
 - If the transaction time is within the time span of an event, it is assigned to that event
 
 ```{r event and transactions, include = TRUE, warning = FALSE}
-# Select events that are not staying at home by excluding home
-events <- gps_name_diff %>% 
-          filter(event_stop == "stop") %>%
+# Select events that are not staying at home by excluding home - 2567 events
+events_cc <- events %>% 
           filter(is.na(home)) %>%
-          mutate(event_start_time = Timestamp - diff) %>%
-          rename(event_stop_time = Timestamp) %>% 
-          dplyr::select(event_stop, event_start_time, event_stop_time,
-                        diff, lat, long, geohash, id, name) %>%
           view()
 
 # Select distinct timestamp with each location from transactions
 trans_time <-   trans_final %>% 
-                # Exclude locations with credit card posting timing issues to reduce spurious matches
-                filter(!location %in% c("Bean There Done That","Brewed Awakenings","Jack's Magical Beans","Coffee Shack","Kronos Mart")) %>% 
                 dplyr::select(location, timestamp) %>% 
                 distinct(location, timestamp) 
                
 # Fuzzy match of events and transactions by time windows
-events_trans <- events %>% 
+events_trans <- events_cc %>% 
                 fuzzy_left_join(trans_time, 
                 by = c("event_start_time" = "timestamp", "event_stop_time" = "timestamp"),
                 match_fun = list(`<`,`>`)) %>%
@@ -651,7 +816,10 @@ events_trans <- events %>%
 
 # Prepare the matched data for visualization. 
 # We would not pick the top matches as some locations are less visited.
-POI <- events_trans %>% drop_na() %>%
+POI <- events_trans %>% dplyr::select(!home) %>% 
+                 drop_na() %>%  
+  
+                 # Round the lat long to reduce effect of spotty gps
                  mutate(lat = round(lat,3), long = round(long,3)) %>% 
                  dplyr::select(location, lat, long, geohash) %>% 
                  group_by(location, lat, long, geohash) %>% 
@@ -659,14 +827,13 @@ POI <- events_trans %>% drop_na() %>%
                  ungroup() %>% 
                  arrange(location, desc(n)) %>% 
                  group_by(location) %>%
-                 #top_n(n = 5) %>%
                  ungroup() %>% 
                  view()
 
 ```
 
 ####  Plot the events that coincide with transactions to determine the lat long of POIs
-```{r coordinates, include = TRUE, warning = FALSE}
+```{r POI coordinates, include = TRUE, warning = FALSE}
 # view the POIs over the jpeg map
 map <- ggplot(POI, aes(long, lat, text = paste("geohash:", geohash))) + 
     
@@ -698,8 +865,7 @@ layout(pp, images = list(
 ```
 
 
-
-We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we visually pick out the lat/long of each POI by checking the points of each POI on the interactive map above.
+We double click on the location names on the interactive map to see where did the credit card and gps locations coincide. We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we visually pick out the geohash of each POI based on the the description on the map, coupled with the highest occurrence. 
 
 Most likely geohashes identified per location:
 
@@ -707,25 +873,24 @@ Most likely geohashes identified per location:
 - Abila Scrapyard: sw3tjrh
 - Abila Zacharo: sw3tjmp
 - Ahaggo Museum: sw3tnpd
-- Albert's Fine Clothing: sw3tjxs
+- Albert's Fine Clothing: sw3tjx7
 - Bean There Done That: sw3tm2r
 - Brew've Been Served: sw3tnek 
 - Carlyle Chemical Inc.: sw3tnhm
 - Chostus Hotel: sw3tnw2
 - Coffee Cameleon: sw3tn7s
-- Coffee Shack: sw3tjxs
 - Desafio Golf Course: sw3tm9y
 - Frank's Fuel: sw3tjq8
-- Frydos Autosupply n' More: sw3tnsx (uncertain - multiple points)
+- Frydos Autosupply n' More: sw3tnes 
 - GAStech: sw3tn4k
 - Gelatogalore: sw3tjsm
 - General Grocer: sw3tjse
-- Guy's Gyros: sw3tnev (uncertain - multiple points)
+- Guy's Gyros: sw3tnev 
 - Hallowed Grounds: sw3tnm1
 - Hippokampos: sw3tjxs
 - Jack's Magic Beans: sw3tnjb
 - Kalami Kafenion: sw3tjt8
-- Katerina's Cafe: sw3tnee (uncertain - multiple points)
+- Katerina's Cafe: sw3tnee 
 - Kronos Mart: sw3tjmx
 - Kronos Pipe and Irrigation: sw3tjj6
 - Maximum Iron and Steel: sw3tjm2
@@ -736,12 +901,13 @@ Most likely geohashes identified per location:
 - Shoppers' Delight: sw3tjgh
 - Stewart and Sons Fabrication: sw3tng3
 - U-Pump: sw3tjvy
+- Kronos Capitol: sw3tj7n
 
 
-```{r coordinates, include = TRUE, warning = FALSE}
+```{r id 28, include = TRUE, warning = FALSE}
 # view the POIs over the jpeg map
-test <- filter(events_trans, id == "28")
-map <- ggplot(test, aes(long, lat, text = paste("geohash:", geohash))) + 
+gps_28 <- filter(events_trans, id == "28")
+map <- ggplot(gps_28, aes(long, lat, text = paste("geohash:", geohash))) + 
     
     theme(panel.border = element_blank(),
     panel.grid.major = element_blank(), 
@@ -770,54 +936,353 @@ layout(pp, images = list(
 ))
 ```
 
-```{r include = TRUE, warning = FALSE}
+#### Create a config table that holds the likely geohashes of each POI
+```{r POI config, include = TRUE, warning = FALSE}
 # Create a config table of the POI with its most likely geohash
 POI_geohash <- tibble(location = c("Abila Airport","Abila Scrapyard","Abila Zacharo","Ahaggo Museum","Albert's Fine Clothing",
                                    "Bean There Done That","Brew've Been Served","Carlyle Chemical Inc.","Chostus Hotel","Coffee Cameleon",
-                                   "Coffee Shack", "Desafio Golf Course","Frank's Fuel","Frydos Autosupply n' More","GAStech",
+                                   "Desafio Golf Course","Frank's Fuel","Frydos Autosupply n' More","GAStech",
                                    "Gelatogalore","General Grocer","Guy's Gyros","Hallowed Grounds","Hippokampos",
                                    "Jack's Magic Beans","Kalami Kafenion","Katerina's Cafe","Kronos Mart","Kronos Pipe and Irrigation",
                                    "Maximum Iron and Steel","Nationwide Refinery","Octavio's Office Supplies","Ouzeri Elian","Roberts and Sons",
-                                   "Shoppers' Delight","Stewart and Sons Fabrication","U-Pump"),
-                      geohash_likely = c("sw3thfv","sw3tjrh","sw3tjmp","sw3tnpd","sw3tjxs",
+                                   "Shoppers' Delight","Stewart and Sons Fabrication","U-Pump","Kronos Capitol"),
+                      geohash_likely = c("sw3thfv","sw3tjrh","sw3tjmp","sw3tnpd","sw3tjx7",
                                         "sw3tm2r","sw3tnek","sw3tnhm","sw3tnw2","sw3tn7s",
-                                        "sw3tjxs","sw3tm9y","sw3tjq8","sw3tnsx","sw3tn4k",
+                                        "sw3tm9y","sw3tjq8","sw3tnes","sw3tn4k",
                                         "sw3tjsm","sw3tjse","sw3tnev","sw3tnm1","sw3tjxs",
                                         "sw3tnjb","sw3tjt8","sw3tnee","sw3tjmx","sw3tjj6",
                                         "sw3tjm2","sw3tnk1","sw3tjsm","sw3tjgn","sw3tjt0",
-                                        "sw3tjgh","sw3tng3","sw3tjvy")) %>% 
+                                        "sw3tjgh","sw3tng3","sw3tjvy","sw3tj7n")) %>% 
                 view()
 
 ```
 
+#### Match events to POI locations based on likely geohash to enhance list with lat long infor
+```{r likely geohash, include = TRUE, warning = FALSE}
+events_trans_2 <- events_trans %>% dplyr::select(!home) %>% 
+                  drop_na() %>% 
+                  left_join(POI_geohash, by = "location") %>%   
+                  filter(geohash == geohash_likely) %>% 
+                  dplyr::select(!timestamp) %>%
+                  distinct() %>%
+                  view()
+```
+
+#### Assign categories to add semantics to points-of-interest (POI)
+```{r POI category, warning=FALSE, include=TRUE, paged.print=TRUE}
+food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
+          "Brewed Awakenings","Coffee Cameleon","Coffee Shack","Gelatogalore",
+          "Guy's Gyros", "Hallowed Grounds","Hippokampos","Jack's Magical Beans", 
+          "Kalami Kafenion", "Katerina's Cafe","Ouzeri Elian")
+retail <- c("Albert's Fine Clothing","Daily Dealz","General Grocer","Kronos Mart",
+            "Roberts and Sons", "Shoppers' Delight")
+gas <- c("Frank's Fuel","U-Pump")
+leisure <- c("Abila Airport","Ahaggo Museum","Chostus Hotel","Desafio Golf Course","Kronos Capitol")
+company <- c("Abila Scrapyard","Carlyle Chemical Inc.","Frydos Autosupply n' More",
+             "Kronos Pipe and Irrigation","Maximum Iron and Steel","GASTech",
+             "Nationwide Refinery","Octavio's Office Supplies","Stewart and Sons Fabrication")
+
+events_trans_2 <- events_trans_2 %>% mutate(category = 
+                    ifelse(location %in% food, "Food",
+                    ifelse(location %in% retail, "Retail",
+                    ifelse(location %in% gas, "Gas",
+                    ifelse(location %in% leisure, "Leisure",
+                    ifelse(location %in% company, "Company", NA)))))) %>% view()
+
+location_labels_POI <- events_trans_2 %>%  drop_na() %>%
+                group_by(location) %>%
+                slice_head() %>%
+                ungroup() %>% 
+                dplyr::select("lat","long","geohash","location","category") %>% 
+  
+                # Identified locations based on windows of other food location + label on map 
+                # as the cc timing did not match gps due to cc posting issues or non-spend locations
+                add_row(lat = 36.068, long = 24.873, geohash = "sw3tnjb", location = "Jack's Magical Beans", category = "Food") %>%
+                add_row(lat = 36.066, long = 24.850, geohash = "sw3tjmx", location = "Kronos Mart", category = "Retail") %>% 
+                add_row(lat = 36.082, long = 24.851, geohash = "sw3tm2r", location = "Bean There Done That", category = "Food") %>%
+                add_row(lat = 36.073, long = 24.864, geohash = "sw3tjycr", location = "Brewed Awakenings", category = "Food") %>%
+                add_row(lat = 36.048, long = 24.880, geohash = "sw3tn4k", location = "GASTech", category = "Company") %>%
+                ungroup() %>% view()
+
+
+# Check that the positions are correctly tagged on the map
+map <- ggplot(location_labels_POI, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color= category, alpha = 0.8)) +
+    geom_text(aes(label =location), size=2)
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+#### Match the rest of the 2567 events + 7 unknown events with POIs and home locations
+```{r POI matched, include = TRUE, warning = FALSE}
+
+# Create a config table with both POI and home locations
+location_labels <- location_labels_POI %>% rbind(location_labels_home) %>%
+                   group_by(location) %>%
+                   slice_head() %>%
+                   ungroup()
+
+# Add the unknown locations from home events match to the rest of the events
+unknown_home_location <- home_matched %>% filter(is.na(location)) %>%
+                         dplyr::select(event_stop,home,event_date, event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name) %>%
+                         rename(lat = lat.x, long = long.x, geohash = geohash.x)
+
+# Match rest of events to POI config table based on 100m radius and pick the location that is closest
+# Unknown locations will be investigated
+POI_matched <-  events_cc %>% 
+                rbind(unknown_home_location) %>%
+                geo_left_join(location_labels, by = c("lat", "long"), max_dist = 0.1, distance_col = "distance", unit = c("km")) %>% 
+                group_by(id, event_stop_time) %>%
+                arrange(desc(distance)) %>%
+                slice_head() %>%
+                view()
+  
+# Plot timeline data as gantt chart
+POI_timeline <- qplot(ymin = event_start_time,
+                    ymax = event_stop_time, 
+                    x = id,
+                    color = location,
+                    geom = "linerange",
+                    data = POI_matched,
+                    size = I(1)) +
+              coord_flip() +
+              ggtitle("Timeline") +
+              scale_y_datetime(date_breaks="1 day") + 
+              theme_gantt() + theme(axis.text.x=element_text(angle=45, hjust=1))
+
+# Make gantt chart interactive
+ggplotly(POI_timeline)
+
+# TRY PLOTLY GANTT CHART so that hover tooltip can be used
+
+```
+
+#### Identify unknown events on the map
 ```{r include = TRUE, warning = FALSE}
-# Fuzzy match of events and transactions by time windows
-events_trans_2 <- events_trans %>% 
-                drop_na() %>% 
-                left_join(POI_geohash, by = "location") %>%   
-                filter(geohash == geohash_likely) %>% 
-                dplyr::select(!timestamp) %>%
-                distinct() %>%
+# Isolate the unknown events
+unknown_location <- POI_matched %>% filter(is.na(location)) %>%
+                         dplyr::select(event_stop,home,event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name) %>%
+                         rename(lat = lat.x, long = long.x, geohash = geohash.x)
+
+map <- ggplot(unknown_location, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=id, alpha = 0.8)) +
+    geom_text(aes(label =id), size=1)
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.7,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+We observe some patterns from the map above:
+- Car ID 9's spotty gps cause events to be identified when there is none. We will ignore the events until we fix the journeys of Car ID 9.
+- Even though we have tried to fix Car ID 28's gps issue, it shows that the lat long of the events are not within the 100m of the POI. Visually, they seem innocuous, being close to Jack's Magic Beans, Brew've Been Served and Kronos Capital. We will do another round of match to tag these events. 
+- Excluding events from 9 and 28, and locations that are near POI, there are 5 locations that cannot be explained. They are visited by Car ID 13, 15, 21 and 24
+
+#### Do a match of all events against the 3 catgeories of locations - home, POI and suspicious
+```{r include = TRUE, warning = FALSE}
+# Tag suspicious locations
+location_labels <- location_labels %>% 
+  add_row(lat = 36.05293, long = 24.84937, geohash = "sw3tj7n", location = "Kronos Capitol", category = "Leisure") %>%
+  add_row(lat = 36.05022, long = 24.90047, geohash = "sw3tnde", location = "Suspicious Location 1", category = "Suspicious") %>%
+  add_row(lat = 36.06318, long = 24.90019, geohash = "sw3tnt5", location = "Suspicious Location 2", category = "Suspicious") %>%
+  add_row(lat = 36.05895, long = 24.89285, geohash = "sw3tnkq", location = "Suspicious Location 3", category = "Suspicious") %>%
+  add_row(lat = 36.08062, long = 24.84688, geohash = "sw3tm2k", location = "Suspicious Location 4", category = "Suspicious") %>%
+  add_row(lat = 36.06946, long = 24.84157, geohash = "sw3tjq1", location = "Suspicious Location 5", category = "Suspicious") %>%
+  view()
+
+# Match all 3068 events 
+# 13 events unmatched, 12 of them from Car ID 9 and 1 from Car ID 28.
+events_matched <-  events_cc %>% 
+                rbind(unknown_home_location) %>%
+                geo_left_join(location_labels, by = c("lat", "long"), max_dist = 0.1, distance_col = "distance", unit = c("km")) %>% 
+                group_by(id, event_stop_time) %>%
+                arrange(desc(distance)) %>%
+                slice_head() %>%
+                rbind(filter(home_matched, !is.na(location)))%>% 
+                view()
+```
+
+#### Match Car IDs with credit card and loyalty card IDs
+```{r include = TRUE, warning = FALSE}
+# Fuzzy match with credit card and loyalty card transactions
+
+loyalty_unmatched_3 <- loyalty_unmatched_3 %>% rename(datestamp = timestamp.y)
+cc_unmatched_3 <- cc_unmatched_3 %>% rename(timestamp = timestamp.x)
+trans_all <- trans_final %>% 
+             bind_rows(loyalty_unmatched_3) %>% 
+             bind_rows(cc_unmatched_3) %>% view()
+
+
+car_spend_match <- trans_final %>% 
+                fuzzy_left_join(events_matched, 
+                by = c("timestamp" = "event_start_time", "timestamp" = "event_stop_time", "location" = "location"),
+                match_fun = list(`>`,`<`,`==`)) %>%
                 view()   
 
+car_spend_match_2 <- car_spend_match %>% dplyr::select(id, name, last4ccnum, loyaltynum) %>%
+                    group_by(id, name, last4ccnum, loyaltynum) %>%
+                    summarise(n = n()) %>%
+                    ungroup() %>%
+                    drop_na() %>%
+                    group_by(id) %>%
+                    arrange(desc(n)) %>%
+                    slice_head() %>%
+                    ungroup() %>%
+                    view()
+
+car_spend_match_3 <- events_matched %>% left_join(car_spend_match_2, by = "id") %>%
+                     fuzzy_left_join(trans_all, 
+                                  by = c("event_start_time" = "timestamp","event_stop_time" =  "timestamp", 
+                                         "location" = "location", "last4ccnum" = "last4ccnum"),
+                                  match_fun = list(`<`,`>`,`==`,`==`)) %>%
+                     view()   
+
+#car_spend_match_4 <- car_spend_match_3 %>% filter(is.na(price)) %>% 
+                     #(trans_all, 
+                                  #by = c("event_date" = "datestamp",
+                                         #"location.x" = "location", "last4ccnum.x" = "last4ccnum")) %>%
+                     #view()   
+
+
+car_spend_match_4 <-  car_spend_match_3 %>%
+                      dplyr::select(event_date, event_start_time, event_stop_time, diff, lat.x, long.x, 
+                                  geohash.x, location.x, id, name.x, last4ccnum.x, loyaltynum.x, 
+                                  timestamp, datestamp, price) %>% 
+                      rename(lat = lat.x, long = long.x, geohash = geohash.x, location = location.x,  
+                            name = name.x, last4ccnum= last4ccnum.x, loyaltynum = loyaltynum.x)
+
+# Plot timeline data as gantt chart
+events_timeline <- qplot(ymin = event_start_time,
+                    ymax = event_stop_time, 
+                    x = id,
+                    color = location,
+                    geom = "linerange",
+                    data = car_spend_match_4,
+                    size = I(1)) +
+              coord_flip() +
+              ggtitle("Timeline") +
+              scale_y_datetime(date_breaks="1 day") + 
+              theme_gantt() + theme(axis.text.x=element_text(angle=45, hjust=1))
+
+# Make gantt chart interactive
+ggplotly(events_timeline)
 ```
 
-Plot heatmap of events by id
+#### Prep data for timeline linking to map
 ```{r include = TRUE, warning = FALSE}
-# Unknown places + Home + POI 
 
-# Plot event timeline
-event_timeline <- events_trans_2 %>%
-                  
-# Plot event data as heatmap
-heatmap_cc <- 
-  ggplot(events_trans_2, aes(x= event_stop_time, y = name, color = location)) +
-              theme_minimal() +
-              geom_point() 
 
-ggplotly(heatmap_cc)                   
+map <- ggplot(location_labels, aes(long, lat, text = paste("geohash:", geohash))) + 
+      
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+  
+  # Add paths
+    geom_line(gps_path, aes())
 
+  # Add points
+    geom_point(aes(color=category, alpha = 0.3)) +
+    geom_text(aes(label =location), size=2)
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
 ```
+
+#### Prep data for timeline linking to map
+```{r include = TRUE, warning = FALSE}
+
+location_labels_sf <- st_as_sf(location_labels, coords = c("long", "lat"), crs = 4326) 
+gps_path_selected <- gps_path %>% filter(id == c("1"))
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+tm_shape(gps_path_selected) +
+  tm_lines() +
+tm_shape(location_labels_sf) +
+  tm_squares(col = "category",
+          id = "location", 
+          popup.vars = "Location Type:" =="category",
+          size = 0.1)
+```
+
+
+
+
+
+
+
+
 
 
 
@@ -827,34 +1292,169 @@ ggplotly(heatmap_cc)
 ### Question 1 
 Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words. 
 
-::: l-body
-|No| Commentary          | Visual                                       |
-|--|---------------------|----------------------------------------------|
-|1| text| ![](./images/Q1_1.png){#id .class width=100%}|
-|2| text| ![](./images/Q1_2.png){#id .class width=100%}|
-|3| text| ![](./images/Q1_3.png){#id .class width=100%}|
-|4| text| ![](./images/Q1_4.png){#id .class width=100%}|
-|5| text| ![](./images/Q1_5.png){#id .class width=100%}|
-|6| text| ![](./images/Q1_6.png){#id .class width=100%}|
-|7| text| ![](./images/Q1_7.png){#id .class width=100%}|
-|8| text| ![](./images/Q1_8.png){#id .class width=100%}|
-:::
+#### Q1 Most popular locations
+The most popular locations belong to the Food categories, such as Katerina's Cafe, Brew've Been Served and Hippokampos. Brew've Been Serve closes on weekends, while Katerina's Cafe peaks on Saturday.
+```{r popular locations, echo=FALSE, warning=FALSE, include=TRUE}
+# Aggregate transactions by day
+trans_all_day <- trans_all %>%
+                 left_join(location_labels_POI, by = "location") %>%
+                 dplyr::select(category, datestamp, location) %>% 
+                 group_by(category, datestamp, location) %>%
+                 summarise(transactions = n()) %>%
+                 ungroup()
+
+# Plot data as heatmap
+heatmap_trans <- ggplot(trans_all_day, aes(x= datestamp, y = location, fill = transactions, text = paste("category: ", category))) +
+              theme_minimal() +
+              geom_tile(colour="white") +
+              labs(x = "Date", y = "Location") +
+              scale_fill_gradient(low = "#dfe1eb", high = "#261fb4") +
+              scale_x_date(breaks = "1 week")
+              labs(title = "Daily Transactions",
+                   x = "Date", fill = "Transactions")
+              
+ggplotly(heatmap_trans)
+
+```
+
+#### Q1 Anomaly - Credit Card Posting at Fixed Hour
+We observed that some locations only have credit card transactions posted in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM.
+Corrections: Not required
+```{r credit card postings, echo=FALSE, warning=FALSE, include=TRUE}
+# Aggregate transactions by hour
+trans_all_hour <- trans_all %>%
+                 left_join(location_labels_POI, by = "location") %>%
+                 mutate(hour = as.character.numeric_version(get_hour(timestamp))) %>%
+                 dplyr::select(category, hour, location) %>% 
+                 group_by(category, hour, location) %>%
+                 summarise(transactions = n()) %>%
+                 ungroup()
+
+# Plot hourly data into a heatmap
+heatmap_trans_hour <- ggplot(trans_all_hour, aes(x= hour, y = location, fill = transactions, text = paste("category: ", category))) +
+              theme_minimal() +
+              geom_tile(colour="white") +
+              labs(x = "Hour", y = "Location") +
+              scale_fill_gradient(low = "#dfe1eb", high = "#261fb4") +
+              #scale_x_datetime(breaks = "6 hours")
+              labs(title = "Hourly Transactions by Locations",
+                   x = "Hour", fill = "Transactions")
+              
+ggplotly(heatmap_trans_hour)
+
+```
+
+#### Q1 Anomaly - Kronos Mart Postings are 1 day late
+Kronos Mart's credit card postings usually come 1 day late, which result in strange timing of the postings at 3-9AM. 
+Corrections: The date of the loyalty card transaction should replace the credit card timestamp. 
+```{r late postings, echo=FALSE, warning=FALSE, include=TRUE}
+kronos_delay <- cc_delay_post_2 %>% filter(location == "Kronos Mart") %>%
+                    mutate(cc = as_date(timestamp.x)) %>%
+                    dplyr::select(price, location, cc, timestamp.y) %>% 
+                    rename(loyalty = timestamp.y) %>%
+                    pivot_longer(!c(location,price), names_to = "type", values_to = "date") %>%
+        
+# Plot scatterplot of Kronos Mart delayed postings
+p <- ggplot(kronos_delay, aes(x=date, y = price, color = type, label = price)) +
+  geom_point() +
+  geom_text(check_overlap = TRUE, size = 2, nudge_x = 0.5) +
+  theme_minimal() +
+  labs(title = "Daily Transactions of Kronos Mart by Card Type",
+                   x = "Date", y = "Price ($)", color = "Card Type")
+
+ggplotly(p)
+```
+
+#### Q1 Anomaly - Cashbacks in Multiples of $20
+We observe that some loyalty card transactions have prices lower than the credit card transactions tied to it. The denominations is usually in multiples of $20, ranging from $20 to $80. Locations vary widely which we guess could be a loyalty cashback scheme. 
+Corrections: We will use the credit card amount as loyalty price is non-consequential to investigation.
+```{r cashback, echo=FALSE, warning=FALSE, include=TRUE}
+# 219 transactions match with price range with price difference in increments of $20.
+cashback_p <- loyalty_cashback %>% 
+      dplyr::select(location.x, price_diff) %>%
+      rename(location =  location.x)
+
+
+p <- ggplot(cashback_p, aes(x = price_diff, fill = location)) + 
+  geom_histogram(boundary = 1, position = "stack") +
+  labs(title = "Distribution of Cashback by Locations",
+                   x = "Cashback Amount ($)", y = "Count", fill = "Locations")
+  theme_minimal()
+  
+ggplotly(p)  
+```
+
+#### Q1 Anomaly - Multiple Credit Cards to Loyalty Cards
+We found unexpected relationships: 1286 & L3288, L6267 - 6691 & 6899
+Corrections: Care was taken to join credit card and loyalty card transactions to prevent duplication.
+```{r multiple match, echo=FALSE, warning=FALSE, include=TRUE}
+visNetwork(nodes, edges, width = "100%", main = list(text = "Relationship Between Credit Card and Loyalty Cards",
+ style = "font-family:arial;font-size:20px;")) %>% 
+  visOptions(highlightNearest = TRUE, nodesIdSelection = list(enabled = TRUE,
+                                                              selected = "74")) %>% 
+  visGroups(groupname = "cc", color = "lightblue") %>%    
+  visGroups(groupname = "loyalty", color = "orange") %>% 
+  visLegend(width = 0.1, position = "right", main = list(text = "Card Types",
+ style = "font-family:arial;font-size:15px;"))
+```
+
+#### Q1 Anomaly - High Spend Due to Possible Fraud
+The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas such as the Airport, chemical plant, refinery, fabrication, scrapyard. The other highest spend that is not industrial is on Albert's Fine Clothing by credit card 1321. 
+
+Using the data table, we noticed that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud. 
+```{r high spends, echo=FALSE, warning=FALSE, include=TRUE}
+d <- highlight_key(trans_all)
+spend_cc <-  ggplot(d, aes(x = last4ccnum, y = price, color = location)) +
+            geom_point() + theme_minimal() + theme(axis.text.x=element_text(angle=45, hjust=1))
+
+gg_cc <- highlight(ggplotly(spend_cc), "plotly_selected")
+
+crosstalk::bscols(gg_cc, DT::datatable(d), widths = 10)
+
+```
+
+```{r high spends, echo=FALSE, warning=FALSE, include=TRUE}
+d <- highlight_key(trans_all)
+spend_cc <-  ggplot(d, aes(x = last4ccnum, y = price, color = location)) +
+            geom_point() + theme_minimal() + theme(axis.text.x=element_text(angle=45, hjust=1))
+
+gg_cc <- highlight(ggplotly(spend_cc), "plotly_selected")
+
+crosstalk::bscols(gg_cc, DT::datatable(d), widths = 10)
+
+```
+
+#### Q1 Anomaly - Sparse Spends
+xx. 
+```{r high spends, echo=FALSE, warning=FALSE, include=TRUE}
+ly_count <- trans_all %>%
+  group_by(datestamp, last4ccnum) %>%
+  summarise(n = n()) %>% 
+  drop_na() %>% ungroup()
+
+ly_count_p <- ggplot(ly_count, aes(x = datestamp, y = n)) + 
+  geom_bar(stat='identity') +
+  facet_wrap(~last4ccnum) 
+
+ggplotly(ly_count_p)
+```
+
+
 
 ### Question 2
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
-::: l-body
-|No| Commentary          | Visual                                       |
-|--|---------------------|----------------------------------------------|
-|1| text| ![](./images/Q2_1.png){#id .class width=100%}|
-|2| text| ![](./images/Q2_2.png){#id .class width=100%}|
-|3| text| ![](./images/Q2_3.png){#id .class width=100%}|
-|4| text| ![](./images/Q2_4.png){#id .class width=100%}|
-|5| text| ![](./images/Q2_5.png){#id .class width=100%}|
-|6| text| ![](./images/Q2_6.png){#id .class width=100%}|
-|7| text| ![](./images/Q2_7.png){#id .class width=100%}|
-|8| text| ![](./images/Q2_8.png){#id .class width=100%}|
-:::
+
+
+#### Q2 Anomaly - High Spend due to Fraud
+The highest spend on the credit card is on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas such as the Airport, chemical plant, refinery, fabrication, scrapyard. The other highest spend that is not industrial is on Albert's Fine Clothing by credit card 1321. 
+```{r high spends, echo=FALSE, warning=FALSE, include=TRUE}
+```
+
+#### Q2 Discrepancies - Different locations registered on transactions vs gps 
+xx
+```{r xx, echo=FALSE, warning=FALSE, include=TRUE}
+```
 
 ### Question 3
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.

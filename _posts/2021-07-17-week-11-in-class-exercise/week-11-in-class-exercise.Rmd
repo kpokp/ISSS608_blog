@@ -1,0 +1,60 @@
+---
+title: "TIL: Week 11 In-Class Exercise"
+description: |
+  Today I learnt in class: How to build a R Shiny app. 
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: 07-17-2021
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(fig.retina = 3,
+                      echo = TRUE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+## Install packages and loading data
+
+### Install the necessary packages if they are not in library
+```{r}
+packages = c('tidyverse','DT',
+             # Handling time variables
+             'lubridate','hms',
+             # Text analytics
+             'tidytext','tidyverse','widyr','wordcloud',
+             'ggwordcloud','textplot','igraph','ggraph')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+## Data cleaning
+
+### Import data from csv and preview data
+```{r}
+exam_data <- read_csv("data/exam_data.csv")
+
+```
+
+
+## XX
+
+### XXX
+
+
