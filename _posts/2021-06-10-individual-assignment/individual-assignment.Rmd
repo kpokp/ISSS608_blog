@@ -37,6 +37,22 @@ In January, 2014, the leaders of GAStech are celebrating their new-found fortune
 ### Mini Challenge 2 Background
 GAStech provides many of their employees with company cars for their personal and professional use, but unbeknownst to the employees, the cars are equipped with GPS tracking devices. We are given tracking data for the two weeks leading up to the disappearance, as well as credit card transactions and loyalty card usage data. From this data, we would identify anomalies and suspicious behaviors and identify which people use which credit and loyalty cards.
 
+## Literature Review
+
+### Overview on Previous Works
+VAST Challenge 2021 made use of the same dataset that was used for VAST Challenge 2014. Of the 28 submissions for the Mini-Challenge 2 in 2014, many of the winning teams made use of D3.js, a JavaScript library to develop their propriety tools. Some of the teams explored novel approach such as using parallel coordinates plot, time rings and network graph. However, most common approaches can be summarized as:
+
+- Timeline of employee’s location color coded by location category overlaid with spend
+- Geospatial map of movement
+- Space-time cube of movement
+
+However, the results cannot be replicated as they are not using open-source software. 
+
+### Our Approach
+We would experiment with some of the visualizations above and seek a simpler representation using R, a open-source software, without compromising on the depth of the insights.
+
+
+
 ## Methodology and Visualisation 
 
 ### Understand the Spend Transactions
@@ -1292,6 +1308,20 @@ tm_shape(location_labels_sf) +
 ### Question 1 
 Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words. 
 
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| Popular locations | ![](./images/Q3_1.png){#id .class width=100%}|
+|2| Anomaly - Credit card postings at fixed hour | ![](./images/Q3_2.png){#id .class width=100%}|
+|3| Anomaly - Kronos Mart Postings are 1 day late | ![](./images/Q3_3.png){#id .class width=100%}|
+|4| Anomaly - Cashbacks in Multiples of $20 | ![](./images/Q3_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q3_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q3_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q3_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q3_8.png){#id .class width=100%}|
+:::
+
+
 #### Q1 Most popular locations
 The most popular locations belong to the Food categories, such as Katerina's Cafe, Brew've Been Served and Hippokampos. Brew've Been Serve closes on weekends, while Katerina's Cafe peaks on Saturday.
 ```{r popular locations, echo=FALSE, warning=FALSE, include=TRUE}
@@ -1399,7 +1429,7 @@ visNetwork(nodes, edges, width = "100%", main = list(text = "Relationship Betwee
 ```
 
 #### Q1 Anomaly - High Spend Due to Possible Fraud
-The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas such as the Airport, chemical plant, refinery, fabrication, scrapyard. The other highest spend that is not industrial is on Albert's Fine Clothing by credit card 1321. 
+The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas tying to the 9 truck drivers. The other highest spend that is not in industrial location is on Albert's Fine Clothing by credit card 1321. 
 
 Using the data table, we noticed that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud. 
 ```{r high spends, echo=FALSE, warning=FALSE, include=TRUE}
@@ -1444,7 +1474,18 @@ ggplotly(ly_count_p)
 ### Question 2
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
-
+::: l-body
+|No| Commentary          | Visual                                       |
+|--|---------------------|----------------------------------------------|
+|1| Confirm credit card fraud | ![](./images/Q3_1.png){#id .class width=100%}|
+|2| Company spend by truck drivers who work in shifts | ![](./images/Q3_2.png){#id .class width=100%}|
+|3| Spatial contradictions between credit card and car locations | ![](./images/Q3_3.png){#id .class width=100%}|
+|4| No car movement on weekend mornings | ![](./images/Q3_4.png){#id .class width=100%}|
+|5| text| ![](./images/Q3_5.png){#id .class width=100%}|
+|6| text| ![](./images/Q3_6.png){#id .class width=100%}|
+|7| text| ![](./images/Q3_7.png){#id .class width=100%}|
+|8| text| ![](./images/Q3_8.png){#id .class width=100%}|
+:::
 
 #### Q2 Anomaly - High Spend due to Fraud
 The highest spend on the credit card is on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas such as the Airport, chemical plant, refinery, fabrication, scrapyard. The other highest spend that is not industrial is on Albert's Fine Clothing by credit card 1321. 
@@ -1456,15 +1497,17 @@ xx
 ```{r xx, echo=FALSE, warning=FALSE, include=TRUE}
 ```
 
+
+
 ### Question 3
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
 
 ::: l-body
 |No| Commentary          | Visual                                       |
 |--|---------------------|----------------------------------------------|
-|1| text| ![](./images/Q3_1.png){#id .class width=100%}|
-|2| text| ![](./images/Q3_2.png){#id .class width=100%}|
-|3| text| ![](./images/Q3_3.png){#id .class width=100%}|
+|1| Owners of credit card | ![](./images/Q3_1.png){#id .class width=100%}|
+|2|  | ![](./images/Q3_2.png){#id .class width=100%}|
+|3| Uncertainty | ![](./images/Q3_3.png){#id .class width=100%}|
 |4| text| ![](./images/Q3_4.png){#id .class width=100%}|
 |5| text| ![](./images/Q3_5.png){#id .class width=100%}|
 |6| text| ![](./images/Q3_6.png){#id .class width=100%}|
@@ -1478,11 +1521,11 @@ Given the data sources provided, identify potential informal or unofficial relat
 ::: l-body
 |No| Commentary          | Visual                                       |
 |--|---------------------|----------------------------------------------|
-|1| text| ![](./images/Q4_1.png){#id .class width=100%}|
-|2| text| ![](./images/Q4_2.png){#id .class width=100%}|
-|3| text| ![](./images/Q4_3.png){#id .class width=100%}|
-|4| text| ![](./images/Q4_4.png){#id .class width=100%}|
-|5| text| ![](./images/Q4_5.png){#id .class width=100%}|
+|1| Elsa(7) and Brand(33) seeing each other | ![](./images/Q4_1.png){#id .class width=100%}|
+|2| Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) conducting suspicious activities | ![](./images/Q4_2.png){#id .class width=100%}|
+|3| Kanon(22) and Borrasca(28) hang out| ![](./images/Q4_3.png){#id .class width=100%}|
+|4| Shared homes of employees | ![](./images/Q4_4.png){#id .class width=100%}|
+|5| Dinner party among engineers and IT | ![](./images/Q4_5.png){#id .class width=100%}|
 |6| text| ![](./images/Q4_6.png){#id .class width=100%}|
 |7| text| ![](./images/Q4_7.png){#id .class width=100%}|
 |8| text| ![](./images/Q4_8.png){#id .class width=100%}|
@@ -1494,16 +1537,16 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 ::: l-body
 |No| Commentary          | Visual                                       |
 |--|---------------------|----------------------------------------------|
-|1| text| ![](./images/Q5_1.png){#id .class width=100%}|
-|2| text| ![](./images/Q5_2.png){#id .class width=100%}|
-|3| text| ![](./images/Q5_3.png){#id .class width=100%}|
-|4| text| ![](./images/Q5_4.png){#id .class width=100%}|
-|5| text| ![](./images/Q5_5.png){#id .class width=100%}|
-|6| text| ![](./images/Q5_6.png){#id .class width=100%}|
-|7| text| ![](./images/Q5_7.png){#id .class width=100%}|
-|8| text| ![](./images/Q5_8.png){#id .class width=100%}|
-|9| text| ![](./images/Q5_9.png){#id .class width=100%}|
-|10| text| ![](./images/Q5_10.png){#id .class width=100%}|
+|1| 5 suspicious locations | ![](./images/Q5_1.png){#id .class width=100%}|
+|2| Surveillance on 4 executive houses | ![](./images/Q5_2.png){#id .class width=100%}|
+|3| Hennie's unusual home stays | ![](./images/Q5_3.png){#id .class width=100%}|
+|4| Friday dinner party at Lars' home | ![](./images/Q5_4.png){#id .class width=100%}|
+|5| Golf gathering with CEO | ![](./images/Q5_5.png){#id .class width=100%}|
+|6| Nils overtime work| ![](./images/Q5_6.png){#id .class width=100%}|
+|7| Gustav's spotty GPS | ![](./images/Q5_7.png){#id .class width=100%}|
+|8| Mid-day rendezvous at Chostus Hotel| ![](./images/Q5_8.png){#id .class width=100%}|
+|9| Inactivity of trucks | ![](./images/Q5_9.png){#id .class width=100%}|
+|10| Bertrand's late night trip | ![](./images/Q5_10.png){#id .class width=100%}|
 :::
 
 

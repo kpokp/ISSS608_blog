@@ -20,41 +20,68 @@ output:
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(fig.retina = 3,
                       echo = TRUE,
-                      eval = TRUE,
+                      eval = FALSE,
                       message = FALSE,
                       warning = FALSE)
 ```
 
-## Install packages and loading data
+## Set Up a R Shiny App 
 
-### Install the necessary packages if they are not in library
 ```{r}
-packages = c('tidyverse','DT',
-             # Handling time variables
-             'lubridate','hms',
-             # Text analytics
-             'tidytext','tidyverse','widyr','wordcloud',
-             'ggwordcloud','textplot','igraph','ggraph')
+library(shiny)
+library(tidyverse)
 
-for (p in packages) {
-  if(!require(p, character.only = T)){
-    install.packages(p)
-  }
-  library(p, character.only = T)
+exam <- read_csv("data/Exam_data.csv")
+
+# Define UI for application 
+ui <- fluidPage(
+    titlePanel("Pupils Examination Results Dashboard"),
+    sidebarLayout(
+        sidebarPanel(
+            selectInput(inputId = "variable",
+                        label = "Subject: ",
+                        choices = c("English" = "ENGLISH", 
+                                    "Math" = "MATHS", 
+                                    "Science" = "SCIENCE"),
+                        selected = "ENGLISH"),
+            sliderInput(inputId = "bin",
+                        label = "Number of bins",
+                        min = 5,
+                        max = 20,
+                        value = c(10)),
+            checkboxInput(inputId = "show_data",
+                          label = "Show data table",
+                          value = TRUE)
+        ),
+        mainPanel(
+            plotOutput("distplot"),
+            DT::dataTableOutput(outputId = "examtable")
+        )
+    )
+)
+
+# Define server logic 
+server <- function(input, output) {
+    output$distplot <- renderPlot({
+        x <- unlist(exam[,input$variable])
+        ggplot(exam, aes(x)) +
+            geom_histogram(bins = input$bin,
+                           color = "black",
+                           fill = "light blue")
+    })
+    
+    output$examtable <- DT::renderDataTable({
+        if(input$show_data){
+            DT::datatable(data = exam %>%
+                          select(1:7),
+                          options = list(pageLength = 10),
+                          rownames = FALSE)
+        }
+    })
 }
-```
 
-## Data cleaning
-
-### Import data from csv and preview data
-```{r}
-exam_data <- read_csv("data/exam_data.csv")
+# Run the application 
+shinyApp(ui = ui, server = server)
 
 ```
-
-
-## XX
-
-### XXX
-
 
