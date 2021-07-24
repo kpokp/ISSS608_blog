@@ -46,7 +46,7 @@ VAST Challenge 2021 made use of the same dataset that was used for VAST Challeng
 - Geospatial map of movement
 - Space-time cube of movement
 
-Timeline paired with geospatial map was the most effective
+Time line chart paired with geospatial map was the most effective in communicating the anomalies and changes in an individual's activities. 
 The space-time cube was especially hard to interpret. 
 
 
@@ -2618,17 +2618,20 @@ Bean There Done That, Brewed Awakenings and Jack's Magic Beans only operate in w
 ```{r credit card posting, echo=FALSE}
 ```
 
-#### Q2 Anomaly - Confirm Kronos Mart Posting was Wrong. 
+#### Q2 Anomaly - Confirm Kronos Mart Posting was Wrong
 Kronos Mart's credit card postings were posted around 12 hours after purchase. 
 ```{r Kronos Mart posting, echo=FALSE}
 ```
 
 #### Q2 Anomaly - Confirm High Spend due to Fraud
-Minke(24) likely stole Lars(1) credit card to for high spend on Frydos Autosupply n 'More. 
+Minke(24) likely stole Lars(1) credit card and made several spends, including a likely online purchase on Daily Dealz,  and $10,000 at Frydos Autosupply n 'More.
 ```{r high spends, echo=FALSE}
 ```
 
+#### Q2 Anomaly - Mismatch of Credit Card Location and GPS Location due to Car Pooling and Shared Purchases
 
+```{r shared purchase & car pool, echo=FALSE}
+```
 
 
 ### Question 3
@@ -2660,10 +2663,13 @@ Given the data sources provided, identify potential informal or unofficial relat
 ```
 
 #### Q4 Relationships - Kanon(22) and Borrasca(28) are seeing each other
+Kanon and Borrasca often hang out for 
+On Jan 18, Kanon and Borrasca went to Capitol in the morning, and to Museum at noon, to Hippokampos in the afternoon, and to Borrasca's home at night together.
 ```{r relationship 3, echo=FALSE}
 ```
 
 #### Q4 Relationships - Dinner party among employees from Engineers and IT departments
+Lars held a home party on the evening of Jan 10, returning home earlier that evening to prepare for it. He invited at least 15 colleagues: 12 people from the engineering department and 4 people from the IT department.
 ```{r relationship 4, echo=FALSE}
 ```
 
@@ -2681,16 +2687,20 @@ Given the data sources provided, identify potential informal or unofficial relat
 Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.
 
 
-#### Q5 Location - Drives to unknown houses
+#### Q5 Location - Drives to 5 unknown houses
+Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) repeatedly visit five suspicious places around the middle of the day. These places were never accessed by other employees.
 ```{r location 1, echo=FALSE}
+
 ```
 
 #### Q5 Location - Surveillance on Executive houses
 ```{r location 2, echo=FALSE}
+
 ```
 
 #### Q5 Location - Surveillance at Executive lunch spots
 ```{r location 3, echo=FALSE}
+
 ```
 
 #### Q5 Location - Hennie's unusual home stays
@@ -2698,6 +2708,10 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 ```
 
 #### Q5 Location - Bertrand's late night trip
+```{r location 5, echo=FALSE}
+```
+
+#### Q5 Location - Kronos Capitol
 ```{r location 5, echo=FALSE}
 ```
 
