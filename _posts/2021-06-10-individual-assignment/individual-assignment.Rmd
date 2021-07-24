@@ -1,9 +1,8 @@
 ---
-title: "Individual Assignment (WIP)"
+title: "Individual Assignment"
 description: |
-  Student hard at work. Check back next time. 
-draft: TRUE
-preview: images/wip.png
+  Vast Challenge 2021 - The Kronos Incident - Mini Challenge 2
+preview: 
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/
