@@ -128,9 +128,11 @@ We can infer the owners of each credit card and loyalty card as shown in Figure 
 #### Q3 Evidence - Evidence and Uncertainty
 The credit card transactions are matched with GPS events based on the time window and location. After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 9 and 28. 
 
-![Figure 18: Match Between Credit Card Transactions and GPS Events](./images/Q3_uncertainty.png){#id .class width=100%}
+![Figure 18a: Match Between Credit Card Transactions and GPS Events](./images/Q3_uncertainty.png){#id .class width=100%}
 
+We have found the reasons for most of the anomalies and mismatch between credit card transactions and GPS events, except for 3 unknown spends, which could be due to car pooling. 
 
+![Figure 18b: Mismatch Between Credit Card Transactions and GPS Events](./images/Q3_mismatch.png){#id .class width=100%}
 
 ### Question 4
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
