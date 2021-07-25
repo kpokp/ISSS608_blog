@@ -117,7 +117,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["images/Q1_cashback.png","images/Q1_fixedhour.png","images/Q1_highspend.png","images/Q1_highspend2.png","images/Q1_kronos.png","images/Q1_multicards.png","images/Q1_popular.png","images/Q1_sparse.png","images/Q2_bertrand.png","images/Q2_dating.png","images/Q2_fixedhour.png","images/Q2_gustav.png","images/Q2_highspend.png","images/Q2_highspend2.png","images/Q2_kronos.png","images/Q3_ccowners.png","images/Q3_uncertainty.png","images/Q3_unmatchedcc.png","images/Q4_dating.png","images/Q4_golf.png","images/Q4_homesurv.png","images/Q4_hotel.png","images/Q4_lars.png","images/Q4_sharedhomes.png","images/Q4_visits.png","individual-assignment-part-3_files/anchor/anchor.min.js","individual-assignment-part-3_files/bowser/bowser.min.js","individual-assignment-part-3_files/distill/template.v2.js","individual-assignment-part-3_files/header-attrs/header-attrs.js","individual-assignment-part-3_files/jquery/jquery.min.js","individual-assignment-part-3_files/popper/popper.min.js","individual-assignment-part-3_files/tippy/tippy-bundle.umd.min.js","individual-assignment-part-3_files/tippy/tippy-light-border.css","individual-assignment-part-3_files/tippy/tippy.css","individual-assignment-part-3_files/tippy/tippy.umd.min.js","individual-assignment-part-3_files/webcomponents/webcomponents.js"]}
+  {"type":"character","attributes":{},"value":["images/Q1_cashback.png","images/Q1_fixedhour.png","images/Q1_highspend.png","images/Q1_highspend2.png","images/Q1_kronos.png","images/Q1_multicards.png","images/Q1_popular.png","images/Q1_sparse.png","images/Q2_bertrand.png","images/Q2_dating.png","images/Q2_fixedhour.png","images/Q2_gustav.png","images/Q2_highspend.png","images/Q2_highspend2.png","images/Q2_kronos.png","images/Q3_ccowners.png","images/Q3_uncertainty.png","images/Q3_unmatchedcc.png","images/Q4_dating.png","images/Q4_golf.png","images/Q4_homesurv.png","images/Q4_hotel.png","images/Q4_lars.png","images/Q4_sharedhomes.png","images/Q4_visits.png","images/Q5_bertrand.png","images/Q5_brewed.png","images/Q5_capitol.png","images/Q5_guygyros.png","images/Q5_homesur.png","images/Q5_unknown.png","individual-assignment-part-3_files/anchor/anchor.min.js","individual-assignment-part-3_files/bowser/bowser.min.js","individual-assignment-part-3_files/distill/template.v2.js","individual-assignment-part-3_files/header-attrs/header-attrs.js","individual-assignment-part-3_files/jquery/jquery.min.js","individual-assignment-part-3_files/popper/popper.min.js","individual-assignment-part-3_files/tippy/tippy-bundle.umd.min.js","individual-assignment-part-3_files/tippy/tippy-light-border.css","individual-assignment-part-3_files/tippy/tippy.css","individual-assignment-part-3_files/tippy/tippy.umd.min.js","individual-assignment-part-3_files/webcomponents/webcomponents.js"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
 <meta name="distill:offset" content="../.."/>
@@ -2192,7 +2192,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </figure>
 <h4 id="q3-evidence---evidence-and-uncertainty">Q3 Evidence - Evidence and Uncertainty</h4>
 <p>The credit card transactions are matched with GPS events based on the time window and location. After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 9 and 28.</p>
-<p>We are not sure if the other credit cards</p>
 <figure>
 <img src="images/Q3_uncertainty.png" id="id" class="class" style="width:100.0%" alt="Figure 18: Match Between Credit Card Transactions and GPS Events" /><figcaption aria-hidden="true">Figure 18: Match Between Credit Card Transactions and GPS Events</figcaption>
 </figure>
@@ -2240,14 +2239,33 @@ document.addEventListener('DOMContentLoaded', function() {
 <h3 id="question-5">Question 5</h3>
 <p>Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.</p>
 <h4 id="q5-location---drives-to-5-unknown-houses">Q5 Location - Drives to 5 unknown houses</h4>
-<p>Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day. These places cannot be identified via credit card transactions nor were accessed by other employees.</p>
+<p>Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day usually for 1 hour. These places cannot be identified via credit card transactions nor were accessed by other employees. Hennie stayed over at one of the unknown locations for more than half a day on 11 Jan.</p>
+<figure>
+<img src="images/Q5_unknown.png" id="id" class="class" style="width:100.0%" alt="Figure 25: Timeline of GPS Events at Unknown Locations" /><figcaption aria-hidden="true">Figure 25: Timeline of GPS Events at Unknown Locations</figcaption>
+</figure>
 <h4 id="q5-location---surveillance-on-executives-houses">Q5 Location - Surveillance on Executives’ houses</h4>
-<p>Isia(16),</p>
-<h4 id="q5-location---surveillance-at-executives-lunch-spots">Q5 Location - Surveillance at Executives’ lunch spots</h4>
-<h4 id="q5-location---hennies-unusual-home-stays">Q5 Location - Hennie’s unusual home stays</h4>
+<p>Isia(16), Loreto(15), Hennie(21), Minke(24) spy on the executive houses in the middle of the night. There will be a brief co-location between 2 of them each time, for example, Loreto and Isia on 7 Jan at Home 10, Loreto and Minke on 9 Jan at Home 32.</p>
+<figure>
+<img src="images/Q5_homesur.png" id="id" class="class" style="width:100.0%" alt="Figure 26: Timeline of Midnight Surveillance at Executives’ Homes" /><figcaption aria-hidden="true">Figure 26: Timeline of Midnight Surveillance at Executives’ Homes</figcaption>
+</figure>
+<h4 id="q5-location---surveillance-at-executives-dining-spots">Q5 Location - Surveillance at Executives’ dining spots</h4>
+<p>From the timeline of GPS Events at Brewed Awakenings and Guy’s Gyros (Figure 27 and 28), we see that Isia(16), Loreto(15) and Minke(24) have co-located in food establishments that several of the Executives were at, including Sten (Car ID 31) the CEO’s visit to Guy’s Gyros on 19 Jan.</p>
+<figure>
+<img src="images/Q5_brewed.png" id="id" class="class" style="width:100.0%" alt="Figure 27: Timeline of GPS Events at Brewed Awakenings" /><figcaption aria-hidden="true">Figure 27: Timeline of GPS Events at Brewed Awakenings</figcaption>
+</figure>
+<figure>
+<img src="images/Q5_guygyros.png" id="id" class="class" style="width:100.0%" alt="Figure 28: Timeline of GPS Events at Guy’s Gyros" /><figcaption aria-hidden="true">Figure 28: Timeline of GPS Events at Guy’s Gyros</figcaption>
+</figure>
 <h4 id="q5-location---kronos-capitol">Q5 Location - Kronos Capitol</h4>
+<p>Several employees visit Kronos Capitol on 18 Jan. We can safely eliminate the visit by Kanon (Car ID 22) and Borrasca (Car ID 28) as it is likely innocuous based on their time line. It is unusual that Kanon (25) parked his car there for a full day from noon of 18 Jan to noon of 19 Jan. And one of the suspects Loreto (15) happen to be there when it happened.</p>
+<figure>
+<img src="images/Q5_capitol.png" id="id" class="class" style="width:100.0%" alt="Figure 29: Timeline of GPS Events at Kronos Capitol" /><figcaption aria-hidden="true">Figure 29: Timeline of GPS Events at Kronos Capitol</figcaption>
+</figure>
 <h4 id="q5-location---bertrands-late-night-trip-to-several-locations">Q5 Location - Bertrand’s late night trip to several locations</h4>
-<p>Bertrand (29) took late night trip starting from his home around 10PM. He visited Guy’s Gyros (10:15pm), Ouzeri Elian (10:29pm), Kalami Kafenion (10:40pm), Hippokampos (10:55pm), U-Pump (11:25pm) where he stays for 30 minutes before returning home at midnight.</p>
+<p>Bertrand (29) took late night trip starting from his home around 10PM. He visited Guy’s Gyros (10:15PM), Ouzeri Elian (10:29PM), Kalami Kafenion (10:40PM), Hippokampos (10:55PM), U-Pump (11:25PM) before heading home at midnight. He changed his credit card the next day.</p>
+<figure>
+<img src="images/Q5_bertrand.png" id="id" class="class" style="width:100.0%" alt="Figure 30: Timeline of Spend and GPS Events of Bertrand" /><figcaption aria-hidden="true">Figure 30: Timeline of Spend and GPS Events of Bertrand</figcaption>
+</figure>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->

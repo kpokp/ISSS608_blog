@@ -128,8 +128,6 @@ We can infer the owners of each credit card and loyalty card as shown in Figure 
 #### Q3 Evidence - Evidence and Uncertainty
 The credit card transactions are matched with GPS events based on the time window and location. After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 9 and 28. 
 
-We are not sure if the other credit cards 
-
 ![Figure 18: Match Between Credit Card Transactions and GPS Events](./images/Q3_uncertainty.png){#id .class width=100%}
 
 
@@ -182,23 +180,31 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 
 
 #### Q5 Location - Drives to 5 unknown houses
-Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day. These places cannot be identified via credit card transactions nor were accessed by other employees.
+Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day usually for 1 hour. These places cannot be identified via credit card transactions nor were accessed by other employees. Hennie stayed over at one of the unknown locations for more than half a day on 11 Jan.
+
+![Figure 25: Timeline of GPS Events at Unknown Locations](./images/Q5_unknown.png){#id .class width=100%}
 
 #### Q5 Location - Surveillance on Executives' houses
-Isia(16), 
+Isia(16), Loreto(15), Hennie(21), Minke(24) spy on the executive houses in the middle of the night. There will be a brief co-location between 2 of them each time, for example, Loreto and Isia on 7 Jan at Home 10, Loreto and Minke on 9 Jan at Home 32.
 
+![Figure 26: Timeline of Midnight Surveillance at Executives' Homes](./images/Q5_homesur.png){#id .class width=100%}
 
-#### Q5 Location - Surveillance at Executives' lunch spots
+#### Q5 Location - Surveillance at Executives' dining spots
+From the timeline of GPS Events at Brewed Awakenings and Guy's Gyros (Figure 27 and 28), we see that Isia(16), Loreto(15) and Minke(24) have co-located in food establishments that several of the Executives were at, including Sten (Car ID 31) the CEO's visit to Guy's Gyros on 19 Jan.
 
+![Figure 27: Timeline of GPS Events at Brewed Awakenings](./images/Q5_brewed.png){#id .class width=100%}
 
-#### Q5 Location - Hennie's unusual home stays
-
+![Figure 28: Timeline of GPS Events at Guy's Gyros](./images/Q5_guygyros.png){#id .class width=100%}
 
 #### Q5 Location - Kronos Capitol
+Several employees visit Kronos Capitol on 18 Jan. We can safely eliminate the visit by Kanon (Car ID 22) and Borrasca (Car ID 28) as it is likely innocuous based on their time line. It is unusual that Kanon (25) parked his car there for a full day from noon of 18 Jan to noon of 19 Jan. And one of the suspects Loreto (15) happen to be there when it happened.  
 
+![Figure 29: Timeline of GPS Events at Kronos Capitol](./images/Q5_capitol.png){#id .class width=100%}
 
 #### Q5 Location - Bertrand's late night trip to several locations
-Bertrand (29) took late night trip starting from his home around 10PM. He visited Guy's Gyros (10:15pm), Ouzeri Elian (10:29pm), Kalami Kafenion (10:40pm), Hippokampos (10:55pm), U-Pump (11:25pm) where he stays for 30 minutes before returning home at midnight.
+Bertrand (29) took late night trip starting from his home around 10PM. He visited Guy's Gyros (10:15PM), Ouzeri Elian (10:29PM), Kalami Kafenion (10:40PM), Hippokampos (10:55PM), U-Pump (11:25PM) before heading home at midnight. He changed his credit card the next day. 
+
+![Figure 30: Timeline of Spend and GPS Events of Bertrand](./images/Q5_bertrand.png){#id .class width=100%}
 
 
 
