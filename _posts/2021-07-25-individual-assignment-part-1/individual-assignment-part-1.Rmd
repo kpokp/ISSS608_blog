@@ -1,0 +1,99 @@
+---
+title: "Individual Assignment Part 1: Background and Methodology"
+description: |
+  Vast Challenge 2021 - The Kronos Incident - Mini Challenge 2
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: 07-25-2021
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(fig.retina = 3,
+                      include = TRUE,
+                      echo = FALSE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+[Part 1: Background and Methodology]() 
+
+[Part 2: R Packages, Data and Analysis]() 
+
+[Part 3: Insights and Conclusion]() 
+
+## 1. Background
+
+### 1.1 Vast Challenge 2021 - The Kronos Incident
+In the twenty years that Tethys-based GAStech has been operating a natural gas production site in Kronos, it has produced remarkable profits and developed strong relationships with the government of Kronos. However, GAStech has not been as successful in demonstrating environmental stewardship.
+
+In January 2014, the leaders of GAStech celebrate their new-found fortune as a result of the initial public offering of their successful company. In the midst of this celebration, several employees of GAStech go missing. An organization known as the Protectors of Kronos (POK) is suspected in the disappearance, but things may not be what they seem.
+
+### 1.2 Mini Challenge 2 Background
+GAStech provides many of their employees with company cars for their personal and professional use, but unbeknownst to them, the cars are equipped with GPS tracking devices. This study is given tracking data for the two weeks leading up to the disappearance, as well as credit card transactions and loyalty card usage data. From this data, we would identify anomalies and suspicious behaviors and identify which people use which credit and loyalty cards.
+
+## 2. Literature Review
+
+### 2.1 Overview on Previous Works
+VAST Challenge 2021 made use of the same dataset that was used for VAST Challenge 2014. Of the 28 submissions for the Mini-Challenge 2 in 2014, many of the winning teams made use of D3.js, a JavaScript library to develop their propriety tools. Some of the teams explored novel approach such as using parallel coordinates plot, time rings and network graph. However, most common approaches can be summarized as:
+
+- Timeline of employee’s location color coded by location category overlaid with spend
+- Geospatial map of movement
+- Space-time cube of movement
+
+Occlusion and edge-crossing issue continues to plague space-time cube visualization when viewed in 2D, and it is not the easiest chart to interpret. 
+
+Time line chart paired with geospatial map was the most effective in communicating the anomalies and changes in an individual's activities, both stationary and with movement. The use of different colours to denote the location's category helps to bring semantic meaning to the charts. 
+
+However, the results from the teams cannot be replicated as they were not created using open-source software. This study aims to overcome by using open-source R packages to replicate the data analysis and visualization.
+
+
+## 3. Methodology and Visualisation Design 
+
+### 3.1 Data Matching To Tie Events to Individuals
+
+One of the challenges of managing the dataset is the lack of definite joining criteria. Fuzzy matching technique has to be employed to match the dataset that do not have the exact data granularity. For example, 
+- Loyalty data only has date level information while credit card is has date and time
+- Credit card spend are point-in-time while events recognized from GPS data have time windows
+- Coordinates of a single location derived from GPS latitude and longitude can vary
+
+The package `fuzzyjoin` of which functions `fuzzy_join` and `geo_join` will be used to match date/spend and lat/long variables.
+
+A methodical approach is taken for data matching. Matching start from the more definite criteria (e.g. exact location, price and date between Credit Card and Loyalty transactions) and removing spurious matches before fuzzy joins are used. The anomalies captured from each fuzzy join will also be discussed. 
+
+### 3.2 Identifying Events and Locations
+
+Another key challenge of the study is to recognize the events of an individual through the GPS data. Before the GPS data could be used, we have to correct and take into account the GPS anomalies from Card ID 9 and 28. 
+
+In this study, we would take pauses between GPS records that are above 5 minutes as an event. Events that last longer than 5 hours will be checked visually if they are home of the individuals. After the home locations are identified, the rest of the events will be matched against credit card transactions based on the GPS event's start and end window to determine the other places of interest (POI). The rest of the unidentified locations will be deemed unknown and suspicious for further investigation.
+
+To take into account the uncertainty from the GPS coordinates, a location config table was created based on the most likely locations, which all events are fuzzy joined and selected based on the closest distance.
+
+### 3.3 Identifying Credit Card Owners
+
+Armed with the full list of GPS events and spending transactions, credit cards are matched to Car IDs based on the time window and location. We would find out the number of successful matches over the number of transactions registered on each credit card. A 50% threshold is identified for a more confident match between Car IDs and credit cards; the Car IDs which fell below the threshold will be tied to the credit card with the highest percentage match.  
+
+### 3.4 Key Visualizations
+
+Almost all the visualizations in this study will be interactive to allow users to uncover clues to aid with the investigation. Plotly's tooltip function is used extensively.
+
+Heat maps using `geom_tile` are adopted to show the patterns of credit card and loyalty card transactions over different time period for each location. Network graph using `visNetwork` is used to uncover the relationship between credit cards and loyalty cards. Parallel coordinates chart is used to uncover common characteristics of individuals. 
+
+They key visualization of this study is an interactive line chart using `ggplotly` and `geom_line` to showcase the time line of GPS events. It is sometimes overlay with credit cards transactions represented by `geom_points` to aid with the analysis. 
+
+When there is a need to showcase GPS movement or key locations, an interactive map with GPS trajectories represented by `geom_path` and key locations represented by `geom_points` is added to complement the interactive line chart.
+
+Other visualizations such as barplots and scatterplots will be used to answer some of the questions. 
+
+
+### Click [here](https://www.google.com) for Part 2 - R Packages, Data and Analysis

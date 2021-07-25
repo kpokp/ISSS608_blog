@@ -2,7 +2,6 @@
 title: "Individual Assignment"
 description: |
   Vast Challenge 2021 - The Kronos Incident - Mini Challenge 2
-preview: 
 author:
   - name: Kelly Koh
     url: https://www.linkedin.com/in/kellykkw/
@@ -293,7 +292,7 @@ netwkgraph
 
 409 loyalty card transactions and 311 credit card transactions were unpaired based on exact date, spend and location. Based on the pairs of credit card and loyalty numbers, we will match the remaining unmatched transactions based on date, location and price range, specifically with loyalty price lower than credit card price. Results show that 219 transactions that have loyalty card price lower than credit card prices. The lower amount registered on the loyalty card usually ranges from $20-80, in increments of $20s. There is no obvious bias to any location or cards. This suggests that there might be a systemic program or error that led to this outcome e.g. cashback program.
 
-```{r match round 2}
+```{r match round 2 - cashback}
 # Create config table based on primary matched pairs of loyalty and credit card numbers detected from network graph 
 config <- pairs %>%
   filter(!(last4ccnum %in% c('1286') & loyaltynum %in% c('L3288'))) 
@@ -327,7 +326,18 @@ transact_match_2 <- transact_match_2 %>%
   mutate(price_diff = price.x - price.y) %>%
   filter(round(price_diff,0) %in% c(20,40,60,80)) 
 
-DT::datatable(transact_match_2, filter = 'top')
+# 219 transactions match with price range with price difference in increments of $20.
+cashback <- ggplot(transact_match_2, 
+            aes(x = price_diff, fill = location.x, 
+                text = paste('Price Difference: $', price_diff,
+                         '<br>Location: ', location.x,
+                         '<br>Count: ', n))) + 
+  geom_histogram(boundary = 1, position = "stack") +
+  labs(title = "Distribution of Cashback by Locations",
+                   x = "Cashback Amount ($)", y = "Count", fill = "Locations") +
+  theme_minimal()
+  
+ggplotly(cashback, tooltip = c("text"))  
 ```
 
 
@@ -357,8 +367,22 @@ transact_match_3 <- full_join(cc_unmatched_2, loyalty_unmatched_2, by = c("locat
 transact_match_3 <- transact_match_3 %>% 
   drop_na() %>%
   mutate(diff_date = datestamp - timestamp.y)
+        
+# Plot scatterplot of Kronos Mart delayed postings
+kronos_delay <- ggplot(transact_match_3 %>%
+  mutate(CreditCard = as_date(timestamp.x)) %>%
+  dplyr::select(price, location, CreditCard, timestamp.y) %>% 
+  rename(LoyaltyCard = timestamp.y) %>%
+  pivot_longer(!c(location,price), names_to = "type", values_to = "date"), 
+                       aes(x=date, y = price, color = type, label = price)) +
+  geom_point() +
+  geom_text(check_overlap = TRUE, size = 2, nudge_x = 0.5) +
+  scale_x_date(date_label = "%a \n%d %b") +  
+  theme_minimal() +
+  labs(title = "Daily Transactions of Kronos Mart by Card Type",
+                   x = "Date", y = "Price ($)", color = "Card Type")
 
-DT::datatable(transact_match_3, filter = 'top')
+ggplotly(kronos_delay)
 ```
 
 
@@ -438,6 +462,13 @@ DT::datatable(trans_final, filter = 'top')
 
 #### 5.1.7 Understand hourly spend patterns
 
+We observed that some locations only have credit card transactions posted in 1 hour within the day e.g. 
+
+- Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM
+- Daily Dealz at 6AM. 
+
+Another anomaly that we will investigate is the posting from Kronos Mart at 3AM.
+
 ```{r hourly trans pattern}
 # Summarize credit card data by hour
 cc_hour <- trans_final %>% 
@@ -471,6 +502,8 @@ heatmap_cc_gg
 
 #### 5.1.8 Understand daily spend patterns
 
+The top 3 popular locations belong to the Food categories, such as Katerina's Cafe, Brew've Been Served and Hippokampos. Katerina's Cafe peaks on Saturday, Hippokampus is busier on weekdays than weekends and Brew've been Served is closed on weekends.
+
 ```{r daily trans patterns}
 # Summarize spend data by day
 trans_day <- trans_final %>% 
@@ -482,13 +515,13 @@ trans_day <- trans_final %>%
 
 break_vec <- trans_day$date_min %>% c(seq(from = min(trans_day$date_min), to = max(trans_day$date_min),by = "day"))
 
-# Plot cc hourly data as heatmap using geom_tile()
+# Plot data as heatmap using geom_tile()
 heatmap_spend <- ggplot(trans_day, aes(x= date_min, y = location, fill = transactions, 
                                   text = paste('No. of Transactions:', transactions,
                                               '<br>Transaction Date: ', date_min,
                                               '<br>Location: ', location))) +
   theme_minimal() +
-  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  theme(axis.text.x=element_text(hjust=1)) +
   geom_tile(colour="white") +
   labs(x = "Date", y = "Location") +
   scale_fill_gradient(low = "#E0E1E4", high = "#000000") +
@@ -498,47 +531,61 @@ heatmap_spend <- ggplot(trans_day, aes(x= date_min, y = location, fill = transac
       x = "Date", fill = "Transactions") 
 
 # Make heatmap interactive with plotly for exploration
-heatmap_spend_gg <- ggplotly(heatmap_spend, tooltip = c("text"))
-heatmap_spend_gg
+ggplotly(heatmap_spend, tooltip = c("text"))
 ```
 
-We observed that some locations only have credit card transactions posted in 1 hour within the day e.g. 
-
-- Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM
-- Daily Dealz at 6AM. 
-
-Another anomaly that we will investigate is the posting from Kronos Mart at 3AM.
 
 
 #### 5.1.9 Understand spend amount
 
+The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 
+9 credit cards (2276, 3506, 4530, 8642, 7792, 9152, 9220, 9614, 9735) register many high spends that are at industrial areas, likely belonging to the 9 truck drivers. 
+
 ```{r trans amount}
-
-d <- highlight_key(trans_final)
-
-spend_cc <-  ggplot(d, aes(x = last4ccnum, y = price, color = location), text = paste('Last 4 Credit Card Number', last4ccnum,
+spend_cc <-  ggplot(trans_final, aes(x = last4ccnum, y = location, size = price*2, color = location, 
+                                     text = paste('Last 4 Credit Card Number:', last4ccnum,
+                                                  '<br>Loyalty Card Number:', loyaltynum,
                                               '<br>Price: $', price,
                                               '<br>Date: $', datestamp,
-                                              '<br>Location: ', location)) +
-  geom_point() + 
+                                              '<br>Location: ', location))) +
+  geom_point(alpha = 0.7) + 
   theme_minimal() + 
-  theme(axis.text.x=element_text(angle=45, hjust=1, size=5)) +
-  labs(title = "Spend Amount By Credit Card Number",
-      x = "Credit Card Number", y = "Price ($)", color = "Location") 
+  theme(axis.text.x=element_text(angle=45, hjust=1, size=7)) +
+  scale_y_discrete(limits = rev) +
+  labs(title = "Spending at Each Location by Credit Card Number",
+      x = "Credit Card Number", y = "Location", color = "Location", size = "Price") 
 
-gg_cc <- highlight(ggplotly(spend_cc), "plotly_selected")
-
-crosstalk::bscols(gg_cc, DT::datatable(d), widths = 12)
-```
-
-#### 5.1.10 Zoom in on credit card 9551
-
-```{r daily spend - 9551 patterns}
-
+ggplotly(spend_cc, tooltip = c("text"))
 ```
 
 
 
+#### 5.1.10 Understand Credit Card Spend Frequency
+
+We spot some anomalies from the frequency of the spends that are worth investigating:
+- Credit card 9551 saw a peak spend of more than $10k with 5 transactions on 13 Jan and registering no spend for 2 days thereafter
+- Early ends - Credit card 5921's last spend was on 19 Jan
+- Late starts - Credit card 3547 started having spend on 12 Jan and 5010 started on 17 Jan
+- Sporadic records with high spends - Credit cards 2276, 3506, 4530, 7792, 8642 9152, 9220, 9614 
+
+```{r daily spend - spend frequency}
+ly_count <- trans_final %>%
+  group_by(datestamp, last4ccnum) %>%
+  summarise(n = n(), total_price = sum(price)) %>% 
+  drop_na() %>% ungroup()
+
+ly_count_p <- ggplot(ly_count, aes(x = datestamp, y = n, fill = total_price, 
+                                   text = paste('Total Spend $', total_price,
+                                              '<br>Frequency:', n,
+                                              '<br>Date:', datestamp))) + 
+  geom_bar(stat='identity') +
+  theme_minimal() +
+  facet_wrap(~last4ccnum) +
+  labs(title = "Transaction Frequency By Credit Card Number",
+      x = "Date", y = "Transaction Frequency", fill = "Total Spend ($)") 
+
+ggplotly(ly_count_p, tooltip = c("text"))
+```
 
 
 
@@ -772,7 +819,7 @@ pp <- ggplotly(map)
 layout(pp, images = list(
   list(
     source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
-    opacity = 0.7,
+    opacity = 0.3,
     layer = "below",
     xref = "x",
     yref = "y",
@@ -814,7 +861,7 @@ pp <- ggplotly(map)
 layout(pp, images = list(
   list(
     source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
-    opacity = 0.7,
+    opacity = 0.3,
     layer = "below",
     xref = "x",
     yref = "y",
@@ -887,7 +934,7 @@ pp <- ggplotly(map)
 layout(pp, images = list(
   list(
     source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
-    opacity = 0.7,
+    opacity = 0.3,
     layer = "below",
     xref = "x",
     yref = "y",
@@ -958,7 +1005,7 @@ pp <- ggplotly(map, tooltip = "text")
 layout(pp, images = list(
   list(
     source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
-    opacity = 0.7,
+    opacity = 0.3,
     layer = "below",
     xref = "x",
     yref = "y",
@@ -1037,9 +1084,9 @@ home_timeline <- ggplot(home_matched,
                          '<br>Location: ', location))) +
   geom_linerange(mapping=aes(y=id, xmin=event_start_time, xmax=event_stop_time, color=location),size=I(1)) +
   scale_y_discrete(limits = rev) +
-  scale_x_datetime(date_breaks="1 day") + 
+  scale_x_datetime(date_breaks="1 day", date_label = "%a \n%d %b") + 
   theme_minimal() +
-  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  theme(axis.text.x=element_text(hjust=1)) +
   # Add label
   labs(title = "Home Locations by Car IDs",
        x = "Date", y = "Car ID", color = "Home Locations") 
@@ -1055,8 +1102,8 @@ ggplotly(home_timeline, tooltip = c("text"))
 
 ### 5.3 Combine Spending Transactions with Events Detected from GPS
 
-#### 5.3.1 Find out the lat long of credit card events based on time frame
-- If the transaction time is within the time span of an event, it is assigned to that event
+#### 5.3.1 Find out the owners of the credit cards based on X percentage match with GPS events
+If the transaction time is within the time span of an event, it is assigned to that event
 
 ```{r event and transactions}
 # Select events that are not staying at home by excluding home - 2,567 events
@@ -1078,10 +1125,9 @@ POI_2 <- POI_matched_home %>%
   bind_rows(unknown_home_location)
 
 # Select distinct timestamp with each location from transactions
-#trans_final
 trans_time <- cc %>%
-  dplyr::select(location, timestamp) %>%
-  distinct(location, timestamp) 
+  dplyr::select(location, timestamp, last4ccnum) %>%
+  distinct(location, timestamp, last4ccnum) 
 
 # Remove locations that coincided with Home locations and add the unknown events from Home matching              
 # Perform fuzzy match of rest of the events and transactions by time windows
@@ -1108,11 +1154,12 @@ POI_matched_2 <- POI_matched %>%
   ungroup() 
 
 glimpse(POI_matched_2)
-
 ```
 
 
+
 #### 5.3.2 Plot the events that coincide with transactions to determine the lat long of POIs
+
 The interactive map shows locations where credit card and gps locations coincide. We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we visually pick out the geohash of each POI based on the the description on the map, coupled with the highest occurrence. 
 
 ```{r POI coordinates, include = TRUE, warning = FALSE}
@@ -1126,7 +1173,7 @@ map <- ggplot(POI_matched_2, aes(long, lat, text = paste("geohash:", geohash))) 
     axis.line = element_line(colour = "grey")) +
 
   # Add points
-  geom_point(aes(color=location.y, size = n), alpha = 0.8) +
+  geom_point(aes(color=location.y, size = n), alpha = 0.3) +
   
   # Add label
   labs(title = "Likely POI Locations",
@@ -1469,7 +1516,7 @@ events_timeline <- ggplot(events_matched_long_highlight,
                                            '<br>Location: ', location,
                                            '<br>Category: ', category))) +
   # Add line range
-  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  geom_line(mapping=aes(y=id,x=timestamp,color=category,group=rownum),size=1) +
   
   # Change theme
   theme_minimal() + 
@@ -1480,7 +1527,7 @@ events_timeline <- ggplot(events_matched_long_highlight,
   theme(axis.text.x=element_text(hjust=1)) +
     
   # Add label
-  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Locations") 
+  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Location Category") 
   
 
 # Make gantt chart interactive 
@@ -1490,6 +1537,8 @@ bscols(
   #filter_select("category", "Select Location Category", events_matched_long_highlight, ~category),
   ggplotly(events_timeline, tooltip = c("text"))
   )
+
+ggplotly(events_timeline, tooltip = c("text"))
 ```
 
 #### 5.3.8 Informal relationships between individuals through home visits
@@ -1869,7 +1918,40 @@ events_timeline_BA <- ggplot(events_matched_long_BA,
 ggplotly(events_timeline_BA, tooltip = c("text"))
 ```
 
+```{r food events - guy gyros timeline}
+# Change data into long form for line chart
+events_matched_long_GG <- events_matched %>% 
+  filter(location == "Guy's Gyros") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
 
+# Plot timeline data as gantt chart
+events_timeline_GG <- ggplot(events_matched_long_GG, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Surveillance at Guy's Gyros", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_GG, tooltip = c("text"))
+```
 
 
 
@@ -1877,42 +1959,68 @@ ggplotly(events_timeline_BA, tooltip = c("text"))
 
 #### 5.3.11 Match Car IDs with credit card and loyalty card IDs
 
+After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 28 and 9.
+
 ```{r match gps events with spend events}
 # Fuzzy match all events with credit card and loyalty card transactions to find unique pairs of car ID and credit card & loyalty card IDs
-spend_match <- trans_final %>%
+trans_freq <- trans_final %>% group_by(last4ccnum) %>%
+  summarise(transaction_freq = n())
+
+spend_match_cc <- trans_final %>%
   fuzzy_left_join(events_matched, 
                   by = c("timestamp" = "event_start_time", 
                         "timestamp" = "event_stop_time", "location" = "location"),
-                  match_fun = list(`>`,`<`,`==`)) %>% 
+                  match_fun = list(`>`,`<`, `==`)) %>% 
   dplyr::select(name, department, title, id, last4ccnum, loyaltynum) %>%
-  group_by(name, department, title, id, last4ccnum, loyaltynum) %>% 
-  summarise(n = n()) %>%
-  ungroup() %>%
-  drop_na(n) %>%
-  group_by(last4ccnum) %>%
-  drop_na(id) %>%
-  arrange(desc(n)) %>%
-  slice_head() %>%
-  ungroup()
+  group_by(name, department, title, id, last4ccnum, loyaltynum) %>%
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  left_join(trans_freq, by = "last4ccnum") %>% 
+  mutate(pct_match = n/transaction_freq*100)
 
-# Each car driver assume to have 1 primary credit card
-spend_match_2 <- spend_match %>% 
-  filter(!is.na(name)) %>%
+# Observe the matches that are more than 30%
+spend_match_cc_2 <- spend_match_cc %>% 
+  filter(pct_match >= 30) 
+
+# Plot chart to visualize 
+spend_match_cc_conf <- ggplot(spend_match_cc_2, aes(x=pct_match, y = id, color = last4ccnum, text = paste('Match:', pct_match, 
+                                           '<br>id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Credit Card:', last4ccnum))) +
+  geom_vline(xintercept=50, linetype="dotted", color = "black") +
+  geom_point() +
+  theme_minimal() +
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  # Add label
+  labs(title = "All Car IDs, except 9 and 28, have >50% Match \nBetween Credit Card Transactions and GPS Events", y = "Car ID", x = "Percentage Match (%)", color = "Credit Card Number") 
+
+ggplotly(spend_match_cc_conf, tooltip = c("text"))
+```  
+
+```{r car and credit card owners}
+# Select 9 & 29 top match
+spend_match_cc_3 <- spend_match_cc_2 %>% 
+  filter(id %in% c("9","29")) %>%
   group_by(id) %>%
-  arrange(desc(n)) %>%
+  arrange(desc(pct_match)) %>% 
   slice_head() %>%
   ungroup()
 
-# Each of 9 truck drivers assume to have 1 credit card based on the spend pattern we saw earlier 
-car_spend_match <- spend_match %>% 
-  filter(is.na(name)) %>%
-  rbind(spend_match_2)
+# Select matches above 50% match and remove duplicates
+car_spend_match <- spend_match_cc_2 %>% 
+  filter(pct_match > 50) %>%
+  rbind(spend_match_cc_3) %>%
+  group_by(last4ccnum) %>%
+  arrange(desc(pct_match)) %>% 
+  slice_head() %>%
+  ungroup()
 
 # Ownership of Credit Card and Car ID
 DT::datatable(car_spend_match, filter = 'top')
 ```
-
-
 
 #### 5.3.12 Plot timeline of events with spending transactions
 
@@ -1974,6 +2082,7 @@ g2 <- ggplot() +
 subplot(ggplotly(g1, tooltip = c("text")), ggplotly(g2, tooltip = c("text")))
 ```
 
+#### 5.3.13 Plot timeline of events that do not match spending transactions
 Find transactions that do not match with GPS locations and GPS locations that did not register any spend
 ```{r spend gps events discrepancies}
 
@@ -2093,7 +2202,8 @@ events_timeline_spend_KM <- ggplot() +
   labs(title = "Kronos Mart - Visits and Spend Transactions Mismatched", y = "Car ID", x = "Date", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
 
 # Make gantt chart interactive
-ggplotly(events_timeline_spend_KM, tooltip = c("text"))
+kronos_lag <- ggplotly(events_timeline_spend_KM, tooltip = c("text"))
+kronos_lag
 ```
 
 Nils' (Car ID 1) credit card (9551) was used at Frydos Autosupply n More on 13 Jan at but he was not present at the location based on his GPS. Nils was actually at Ouzeri Elian. Instead, Minke (Car ID 24) was present at the shop. We can infer that Minke had stolen Nils' credit card for fraudulent use. 
@@ -2141,7 +2251,8 @@ events_timeline_spend_FA <- ggplot() +
   labs(title = "Frydos Autosupply n' More - Visits and Spend Transactions by Car IDs", y = "Car ID", x = "Date", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
   
 # Make gantt chart interactive
-ggplotly(events_timeline_spend_FA, tooltip = c("text"))
+fraud_frydos <- ggplotly(events_timeline_spend_FA, tooltip = c("text"))
+fraud_frydos
 ```
 
 
@@ -2190,10 +2301,10 @@ events_timeline_spend_cafe <- ggplot() +
   labs(title = "Cafes with Fixed Posting - Visits and Spend Transactions Mismatched", y = "Car ID", x = "Date", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
   
 # Make gantt chart interactive
-ggplotly(events_timeline_spend_cafe, tooltip = c("text"))
+fixed_posting <- ggplotly(events_timeline_spend_cafe, tooltip = c("text"))
+fixed_posting
 ```
 
-#### 5.3.13 Plot timeline of events of individuals
 
 ```{r individual event - 22 & 28 timeline}
 # Change data into long form for line chart
@@ -2251,7 +2362,8 @@ events_timeline_2 <- ggplot() +
   labs(title = "Locations Visted By Kanon(22) and Borrasca(28)", y = "Event Start Date", x = "Time", color = "Locations") 
 
 # Make gantt chart interactive
-ggplotly(events_timeline_2, tooltip = c("text"))
+dating <- ggplotly(events_timeline_2, tooltip = c("text"))
+dating
 
 ```
 
@@ -2306,13 +2418,131 @@ events_timeline_3 <- ggplot() +
   scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
   theme(axis.text.x=element_text(angle=45, hjust=1)) 
 
-  #facet_wrap(~id, ncol = 2) +
-
   # Add label
   labs(title = "Locations Visted By Bertrand (29)", y = "Event Start Date", x = "Time", color = "Locations") 
 
 # Make gantt chart interactive
 ggplotly(events_timeline_3, tooltip = c("text"))
+```
+
+```{r individual event - 9 timeline}
+# Change data into long form for line chart
+events_matched_long_5 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("9")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_5 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("9")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_5 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_5, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_5,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) 
+
+  #facet_wrap(~id, ncol = 2) +
+
+  # Add label
+  labs(title = "Locations Visted By Gustav(9)", y = "Event Start Date", x = "Time", color = "Locations") 
+
+# Make gantt chart interactive
+bertrand <- ggplotly(events_timeline_5, tooltip = c("text"))
+bertrand
+```
+
+Minke stole Lar's credit card.
+```{r individual event - 1 & 24 timeline}
+# Change data into long form for line chart
+events_matched_long_4 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("1","24")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_4 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("1","24")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_4 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_4, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_4,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+
+  facet_wrap(~id, ncol = 2) +
+
+  # Add label
+  labs(title = "Locations Visted By Lars (1) and  Minke (24)", y = "Event Start Date", x = "Time", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_4, tooltip = c("text"))
 
 ```
 
@@ -2326,15 +2556,17 @@ POI_events_only_2 <- events_matched %>%
   filter(!id %in% c("22","28","29"))
 
 # Fuzzy match all events with credit card and loyalty card transactions to find unique pairs of car ID and credit card & loyalty card IDs
-spend_match_2 <- trans_final_id %>%
-  fuzzy_full_join(POI_events_only, 
+spend_match_4 <- trans_final_id %>%
+  filter(!location %in% c("GASTech","Kronos Capitol","Kronos Mart","Bean There Done That","Brewed Awakenings","Jack's Magical Beans")) %>%
+  filter(!id %in% c("22","28","29")) %>%
+  fuzzy_full_join(POI_events_only_2, 
                   by = c("timestamp" = "event_start_time", 
                         "timestamp" = "event_stop_time", 
                         "location" = "location",
                         "id" = "id"),
                   match_fun = list(`>`,`<`,`==`,`==`))
 
-spend_mismatch <- spend_match %>%
+spend_mismatch_2 <- spend_match_4 %>%
   filter(is.na(timestamp)|is.na(event_start_time))
 
 # Change data into long form for line chart
@@ -2387,7 +2619,9 @@ ggplotly(events_timeline_mismatch_2, tooltip = c("text"))
 
 
 
-#### 5.4 Suspicious Individuals
+#### 5.4 Suspicious Locations
+
+#### 5.4.1 Observe timeline of suspicious individuals to get hints on location
 
 Isolating individuals who visited unknown locations and was carrying out surveillance on Executives houses.
 ```{r individual event timeline}
@@ -2453,27 +2687,35 @@ ggplotly(events_timeline_1, tooltip = c("text"))
 
 ```
 
-#### 5.3.14 Link timeline to map to find suspicious locations
+#### 5.4.2 Link timeline to map view to find suspicious locations
 
 #### Prep data for timeline linking to map
 ```{r}
-map <- ggplot(location_labels, aes(long, lat, text = paste("geohash:", geohash))) + 
-      
+
+# Prepare paths
+gps_path_1 <- gps_name_diff %>% 
+  filter(id %in% c("13","15","21","24")) %>%
+  filter(hour(timestamp) < 13 | hour(timestamp) > 11)
+
+# Map all locations
+map <- ggplot(gps_path_1, aes(long, lat)) + 
+    
     theme(panel.border = element_blank(),
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank(), 
     panel.background = element_blank(),
     axis.line = element_line(colour = "grey")) +
-  
-  # Add paths
-    geom_line(gps_path, aes())
 
-  # Add points
-    geom_point(aes(color=category, alpha = 0.3)) +
-    geom_text(aes(label =location), size=2)
+  # Add path points
+  geom_point(size = 1, color='black') +
+  geom_point(location_labels_all, mapping=aes(long, lat, color=category, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Suspicious Locations", color = "Location")
 
 # Use ggplotly to make it interactive so we can pick the right geohash visually
 pp <- ggplotly(map)
+
 layout(pp, images = list(
   list(
     source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
@@ -2490,11 +2732,11 @@ layout(pp, images = list(
 ))
 ```
 
-#### Prep data for timeline linking to map
+#### Prepare map
 ```{r}
 
-location_labels_sf <- st_as_sf(location_labels, coords = c("long", "lat"), crs = 4326) 
-gps_path_selected <- gps_path %>% filter(id == c("1"))
+location_labels_sf <- st_as_sf(location_labels_all, coords = c("long", "lat"), crs = 4326) 
+gps_path_selected <- gps_path %>% filter(id == c("29"))
 
 tmap_mode("view")
 
@@ -2542,39 +2784,14 @@ heatmap_cc_gg
 Kronos Mart's credit card postings usually come 1 day late, which result in strange timing of postings at 3-9AM. 
 Corrections: Correct posting timing based on available GPS record or take the date of loyalty card record.
 ```{r Q1 late postings, echo=FALSE}
-kronos_delay <- transact_match_3 %>%
-  mutate(CreditCard = as_date(timestamp.x)) %>%
-  dplyr::select(price, location, CreditCard, timestamp.y) %>% 
-  rename(LoyaltyCard = timestamp.y) %>%
-  pivot_longer(!c(location,price), names_to = "type", values_to = "date")
-        
-# Plot scatterplot of Kronos Mart delayed postings
-p <- ggplot(kronos_delay, aes(x=date, y = price, color = type, label = price)) +
-  geom_point() +
-  geom_text(check_overlap = TRUE, size = 2, nudge_x = 0.5) +
-  theme_minimal() +
-  labs(title = "Daily Transactions of Kronos Mart by Card Type",
-                   x = "Date", y = "Price ($)", color = "Card Type")
-
-ggplotly(p)
+ggplotly(kronos_delay)
 ```
 
 #### Q1 Anomaly - Cashbacks in Multiples of $20
 Some loyalty card transactions have prices lower than the corresponding credit card transactions. The denominations are usually in multiples of $20, ranging from $20 to $80. Locations vary widely, suggesting a loyalty cashback scheme. 
 Corrections: Use credit card amount as loyalty price is non-consequential to investigation.
 ```{r Q1 cashbacks, echo=FALSE}
-# 219 transactions match with price range with price difference in increments of $20.
-p <- ggplot(transact_match_2, 
-            aes(x = price_diff, fill = location.x, 
-                text = paste('Price Difference: $', price_diff,
-                         '<br>Location: ', location.x,
-                         '<br>Count: ', n))) + 
-  geom_histogram(boundary = 1, position = "stack") +
-  labs(title = "Distribution of Cashback by Locations",
-                   x = "Cashback Amount ($)", y = "Count", fill = "Locations") +
-  theme_minimal()
-  
-ggplotly(p, tooltip = c("text"))  
+ggplotly(cashback, tooltip = c("text"))
 ```
 
 #### Q1 Anomaly - Multiple Credit Cards to Loyalty Cards
@@ -2593,17 +2810,8 @@ crosstalk::bscols(gg_cc, DT::datatable(d), widths = 10)
 ```
 
 
-#### Q1 Anomaly - Sparse Spends
+#### Q1 Anomaly - Sparse Spends due to Multiple Cards 
 ```{r sparse spends}
-ly_count <- trans_all %>%
-  group_by(datestamp, last4ccnum) %>%
-  summarise(n = n()) %>% 
-  drop_na() %>% ungroup()
-
-ly_count_p <- ggplot(ly_count, aes(x = datestamp, y = n)) + 
-  geom_bar(stat='identity') +
-  facet_wrap(~last4ccnum) 
-
 ggplotly(ly_count_p)
 ```
 
@@ -2616,21 +2824,37 @@ Add the vehicle data to your analysis of the credit and loyalty card data. How d
 #### Q2 Anomaly - Confirm Credit Card Posting at Fixed Hour was Wrong
 Bean There Done That, Brewed Awakenings and Jack's Magic Beans only operate in weekday mornings and posted credit card transactions at 12 noon.
 ```{r credit card posting, echo=FALSE}
+fixed_posting
 ```
 
 #### Q2 Anomaly - Confirm Kronos Mart Posting was Wrong
 Kronos Mart's credit card postings were posted around 12 hours after purchase. 
 ```{r Kronos Mart posting, echo=FALSE}
+kronos_lag
 ```
 
 #### Q2 Anomaly - Confirm High Spend due to Fraud
 Minke(24) likely stole Lars(1) credit card and made several spends, including a likely online purchase on Daily Dealz,  and $10,000 at Frydos Autosupply n 'More.
 ```{r high spends, echo=FALSE}
+fraud_frydos
+minke_lars
 ```
 
 #### Q2 Anomaly - Mismatch of Credit Card Location and GPS Location due to Car Pooling and Shared Purchases
-
+Kanon and Borrasca often drive out and hang out for meals, they 
 ```{r shared purchase & car pool, echo=FALSE}
+dating
+```
+
+#### Q2 Anomaly - Mismatch of Credit Card Location and GPS Location due to Change of Credit Cards
+Bertrand (29) changed his credit card after the first week. 
+```{r credit card change, echo=FALSE}
+bertrand
+```
+
+#### Q2 Anomaly - Gustav(9)'s Mismatch of Credit Card Location and GPS Location 
+There are transactions on Gustav's credit card in the evenings when his GPS location shows that he should be at home. We suspect Gustav took other transportation (e.g. walk or cycle) to the shops near his home such as Hippokampus and Albert's Fine Clothing to make those purchase.
+```{r, echo=FALSE}
 ```
 
 
@@ -2639,13 +2863,14 @@ Can you infer the owners of each credit card and loyalty card? What is your evid
 
 #### Q3 Owners of Credit Cards and Loyalty Card
 ```{r gps & credit card match, echo=FALSE}
+DT::datatable(car_spend_match, filter = 'top')
 ```
 
-#### Q3 Evidence - Credit Card Spends without Location Corroborated
+#### Q3 Evidence - Credit Card Spends without GPS Location Corroborated
 ```{r gps & credit card mismatch, echo=FALSE}
 ```
 
-#### Q3 Uncertainty - Locations Close to Each Other
+#### Q3 Uncertainty - Locations Cluster Close to Each Other
 ```{r uncertainty of match, echo=FALSE}
 ```
 
@@ -2655,32 +2880,50 @@ Can you infer the owners of each credit card and loyalty card? What is your evid
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
 
 #### Q4 Relationships - Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) conducting suspicious activities together
+
 ```{r relationship 1, echo=FALSE}
+
 ```
 
-#### Q4 Relationships - Elsa(7) and Brand(33) have rendezvous middle of workdays
+#### Q4 Relationships - Elsa(7) and Brand(33) have rendezvous at Chostus Hotel
+Elsa(7) and Brand(33) visited Chostus Hotel on the same weekday afternoons for four different days. They drove their own cars and paid using their own credit cards. 
 ```{r relationship 2, echo=FALSE}
+hotel
 ```
 
 #### Q4 Relationships - Kanon(22) and Borrasca(28) are seeing each other
-Kanon and Borrasca often hang out for 
-On Jan 18, Kanon and Borrasca went to Capitol in the morning, and to Museum at noon, to Hippokampos in the afternoon, and to Borrasca's home at night together.
+Kanon and Borrasca often drive out and hang out for meals. Kanon also visits Borrasca's home at times. On Jan 18, Kanon and Borrasca went to Capitol in the morning, and to Museum at noon, to Hippokampos in the afternoon, and to Borrasca's home at night together.
 ```{r relationship 3, echo=FALSE}
+dating
 ```
 
 #### Q4 Relationships - Dinner party among employees from Engineers and IT departments
-Lars held a home party on the evening of Jan 10, returning home earlier that evening to prepare for it. He invited at least 15 colleagues: 12 people from the engineering department and 4 people from the IT department.
+Lars held a home party on the evening of Jan 10, returning home earlier around 5PM that evening to prepare for it. He invited at least 15 colleagues: 12 people from the engineering department and 4 people from the IT department who stayed between 7PM and 11PM.
 ```{r relationship 4, echo=FALSE}
+dinner_party
 ```
 
 #### Q4 Relationships - Shared homes of employees
 ```{r relationship 5, echo=FALSE}
+home_para_cord
 ```
 
 #### Q4 Relationships - Hennie's (21) second home
 ```{r relationship 6, echo=FALSE}
+friends
 ```
 
+#### Q4 Relationships - Executives' weekend golf
+Over the two weekends, the executives all went to play golf. Orhan missed the first weekend and joined only when CEO Sten joined when he was in Aliba.
+```{r relationship 7, echo=FALSE}
+golf
+```
+
+#### Q4 Relationships - Sharing 1 Loyalty Card
+Over the two weekends, the executives all went to play golf. Orhan missed the first weekend and joined only when CEO Sten joined when he was in Aliba.
+```{r relationship 7, echo=FALSE}
+golf
+```
 
 
 ### Question 5
@@ -2688,17 +2931,18 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 
 
 #### Q5 Location - Drives to 5 unknown houses
-Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) repeatedly visit five suspicious places around the middle of the day. These places were never accessed by other employees.
+Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day. These places cannot be identified via credit card transactions nor were accessed by other employees.
 ```{r location 1, echo=FALSE}
 
 ```
 
-#### Q5 Location - Surveillance on Executive houses
+#### Q5 Location - Surveillance on Executives' houses
+Isia(16), 
 ```{r location 2, echo=FALSE}
-
+surveillance
 ```
 
-#### Q5 Location - Surveillance at Executive lunch spots
+#### Q5 Location - Surveillance at Executives' lunch spots
 ```{r location 3, echo=FALSE}
 
 ```
@@ -2707,11 +2951,13 @@ Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) repeatedly visit five susp
 ```{r location 4, echo=FALSE}
 ```
 
-#### Q5 Location - Bertrand's late night trip
-```{r location 5, echo=FALSE}
-```
-
 #### Q5 Location - Kronos Capitol
 ```{r location 5, echo=FALSE}
 ```
+
+#### Q5 Location - Bertrand's late night trip to several locations
+Bertrand (29) took late night trip starting from his home around 10PM. He visited Guy's Gyros (10:15pm), Ouzeri Elian (10:29pm), Kalami Kafenion (10:40pm), Hippokampos (10:55pm), U-Pump (11:25pm) where he stays for 30 minutes before returning home at midnight.
+```{r location 5, echo=FALSE}
+```
+
 

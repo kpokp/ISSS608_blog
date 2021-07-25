@@ -1,0 +1,559 @@
+---
+title: "Individual Assignment Part 2: R Packages, Data and Analysis"
+description: |
+  Vast Challenge 2021 - The Kronos Incident - Mini Challenge 2
+author:
+  - name: Kelly Koh
+    url: https://www.linkedin.com/in/kellykkw/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg/
+date: 06-10-2021
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(fig.retina = 3,
+                      fig.width = 10,
+                      echo = TRUE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+[Part 1: Background and Methodology]() 
+
+[Part 2: R Packages, Data and Analysis]() 
+
+[Part 3: Insights and Conclusion]() 
+
+
+## 4. R Packages & Data
+
+These R packages are used:
+
+```{r download packages}
+# The following R packages are used for respective parts of the workflow:
+packages = c( # Loading data from csv files
+               'readr',
+              # Cleaning and manipulating data 
+              'tidyverse', 'DT', 'fuzzyjoin',
+              # Manipulate time and date variables
+              'lubridate', 'clock', 
+              # Plot heat maps, gantt, parallel coordinates and scatter plot graphs
+              'ggplot2', 'igraph', 'gghighlight', 'scales', 'ggbreak', 'ggforce','gridExtra',
+              # Plot interactive network graph
+              'visNetwork',
+              # Add interactivity to ggplot charts
+              'plotly', 'gganimate', 'quantmod', 'crosstalk',
+              # Load maps & manipulate geo-spatial data
+              'jpeg', 'grid', 'geohashTools', 'sf', 'tmap', 'patchwork', 'raster', 'rgdal', 'mapview')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+There are 4 csv datasets provided:
+
+
+- **Credit card data**: transaction of each credit card with timestamp, price and location. 
+    + 55 unique credit card numbers
+    + 1,490 credit card transactions
+
+```{r cc data}
+cc <- read_csv("data/cc_data.csv",
+               col_types = cols(timestamp = col_datetime(format = "%m/%d/%Y %H:%M"), 
+                                location = col_character(), 
+                                price = col_double(), 
+                                last4ccnum = col_double()))
+
+cc <- cc %>% arrange(last4ccnum,timestamp) %>%
+  mutate(last4ccnum = as.factor(last4ccnum))
+
+glimpse(cc)
+```
+
+
+- **Loyalty card data**: transaction on loyalty card with date, price and location. 
+    + 54 unique loyalty card numbers
+    + 1,392 loyalty card transactions
+
+```{r loyalty data}
+loyalty <- read_csv("data/loyalty_data.csv",
+               col_types = cols(timestamp = col_date(format = "%m/%d/%Y"), 
+                                location = col_character(), 
+                                price = col_double(), 
+                                loyaltynum = col_character()))
+
+loyalty <- loyalty %>% arrange(loyaltynum,timestamp) %>%
+  mutate(loyaltynum = as.factor(loyaltynum))
+
+glimpse(loyalty)
+```
+
+
+- **GPS data**: timestamped latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
+    + 40 unique Car IDs (1 to 35, 101, 104 to 107)
+    + 685,169 records
+
+```{r gps data}
+gps <- read_csv("data/gps.csv",
+               col_types = cols(Timestamp = col_datetime(format = "%m/%d/%Y  %H:%M:%S"), 
+                                id = col_double(), 
+                                lat = col_double(), 
+                                long = col_double()))
+
+gps <- gps %>% arrange(id, Timestamp) %>%
+  mutate(id = as.factor(id))
+
+glimpse(gps)
+```
+
+
+- **Car assignment data**: full names of employees and ID of cars assigned 
+  + 44 known employees
+  + 35 cars are given IDs and associated with employees
+  + 9 trucks drivers are not assigned with particular vehicle ID
+
+```{r car assignment data}
+cars <- read_csv("data/car-assignments.csv",
+               col_types = cols(LastName = col_character(), 
+                                FirstName = col_character(),
+                                CarID = col_double(), 
+                                CurrentEmploymentType = col_character(),
+                                CurrentEmploymentTitle = col_character()))
+
+cars <- cars %>% arrange(CarID) %>%
+  mutate(CarID = as.factor(CarID))
+
+glimpse(cars)
+```
+
+Beyond the csv files, a tourist map image of Aliba and geospatial datasets are provided.
+![Figure 1](./images/MC2-tourist.jpg)
+
+
+## 5. Data Transformation And Analysis
+
+### 5.1 Credit and Loyalty Card Transactions
+
+#### 5.1.1 Correct unrecognized character in location name
+```{r POI names}
+# Match names of locations in credit card and loyalty card transactions to check spelling
+cc_loc <- cc %>% distinct(location) %>% arrange(location) 
+
+loyalty_loc <- loyalty %>% distinct(location) %>% arrange(location) 
+
+location <- full_join(cc_loc, loyalty_loc, by = "location") %>% 
+            arrange(location)
+
+# Replace the unrecognized characters in Katerina's Cafe location in cc & loyalty data
+cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe"
+loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe"
+```
+
+
+#### 5.1.2 Join credit card transactions to loyalty transactions - round 1
+
+Credit card transactions are joined with loyalty card transactions using date, location and spend amount as loyalty card transactions do not have time. 
+Any credit card and loyalty card match that only has 1 transaction will be removed to avoid spurious match. 
+
+From the 1,081 matched transactions, there are 56 unique pairs of credit cards and loyalty cards, which points to multiple relationship between credit card and loyalty cards. As it is hard to visualize the interconnection between credit cards and loyalty cards in tabular form, a network graph will be used to visualize the relationship.
+
+```{r match round 1}
+# Create new date field for credit card data
+cc <- cc %>% 
+  mutate(datestamp = as.Date(timestamp))
+
+# Join datasets on exact date, location and price (round 1)
+# 1,807 records with spurious matches and non-matches
+transact <- cc %>% 
+  full_join(loyalty, by = c("datestamp" = "timestamp", "location", "price"))
+
+# Find the unique pairs of credit card and loyalty card 
+# 56 pairs of credit card and loyalty card pairs
+pairs <- transact %>% 
+  group_by(last4ccnum, loyaltynum) %>%
+  count() %>%
+  # Remove 6 spurious matches
+  filter(n>1) %>%
+  drop_na() %>%
+  arrange(last4ccnum,loyaltynum) %>%
+  ungroup()
+
+# 1,081 matched transactions 
+transact_match <- transact %>% 
+  drop_na() %>%
+  left_join(pairs, by = c("last4ccnum","loyaltynum")) %>% 
+  drop_na()%>%
+  dplyr::select(-n) 
+
+glimpse(transact_match)
+```
+
+ 
+#### 5.1.2 Visualize credit card and loyalty cards relationship using network graph
+
+From the network graph, we observe unexpected relationships between credit card 1286 and loyalty card L3288 and loyalty card L6267 is tied to two credit cards 6691 and 6899. 
+
+```{r prep network graph}
+# Prepare cc & loyalty matching data for network graph format
+last4ccnum <- transact_match %>%
+  distinct(last4ccnum) %>%
+  rename(label = last4ccnum) %>%
+  mutate(group = 'cc')
+
+loyaltynum <- transact_match %>%
+  distinct(loyaltynum) %>%
+  rename(label = loyaltynum) %>%
+  mutate(group = 'loyalty')
+
+nodes <- full_join(loyaltynum, last4ccnum, by = c("label","group"))
+
+nodes <- nodes %>% rowid_to_column("id") 
+
+per_route <- transact_match %>%  
+  group_by(loyaltynum, last4ccnum) %>%
+  summarise(weight = n()) %>% 
+  ungroup()
+
+edges <- per_route %>% 
+  left_join(nodes, by = c("last4ccnum" = "label")) %>% 
+  rename(from = id)
+
+edges <- edges %>% 
+  left_join(nodes, by = c("loyaltynum" = "label")) %>% 
+  rename(to = id)
+
+edges <- dplyr::select(edges, from, to, weight) %>% 
+  filter(weight > 1) %>% 
+  mutate(width = weight/5 + 1)
+
+# Plot network graph to show cc and loyalty cards relationship
+netwkgraph <- visNetwork(nodes, edges, width = "100%", main = list(text = "Relationship Between Credit Card and Loyalty Cards",
+ style = "font-family:arial;font-size:20px;")) %>% 
+  visOptions(highlightNearest = TRUE,
+             nodesIdSelection = list(enabled = TRUE,selected = "1")) %>% 
+  visGroups(groupname = "cc", color = "lightblue") %>%    
+  visGroups(groupname = "loyalty", color = "orange") %>% 
+  visLegend(width = 0.1, position = "right", main = list(text = "Card Types",
+ style = "font-family:arial;font-size:15px;"))
+netwkgraph
+```
+
+
+#### 5.1.3 Join unmatched credit card transactions to loyalty transactions - round 2
+
+409 loyalty card transactions and 311 credit card transactions were unpaired based on exact date, spend and location. Based on the pairs of credit card and loyalty numbers, we match the remaining unmatched transactions based on date, location and a price range, specifically with loyalty price lower than credit card price. 
+
+Results show that 219 transactions have loyalty card price lower than credit card prices. The lower amount registered on the loyalty card usually ranges from $20-80, in increments of $20s. There is no obvious bias to any location or cards. This suggests that there might be a systemic program or error that led to this outcome e.g. cashback program.
+
+```{r match round 2 - cashback}
+# Create config table based on primary matched pairs of loyalty and credit card numbers detected from network graph 
+config <- pairs %>%
+  filter(!(last4ccnum %in% c('1286') & loyaltynum %in% c('L3288'))) 
+
+# 1,066 transactions with exact match on date, loyalty number, price and location
+exact_match <-  cc %>% 
+                left_join(config, by = "last4ccnum") %>% 
+                inner_join(loyalty, by = c("datestamp" = "timestamp",
+                                           "loyaltynum",
+                                           "location","price"))
+
+# 409 cc transactions exclude matches from exact price match
+cc_unmatched <- cc %>%
+  anti_join(transact_match, by = c("datestamp","last4ccnum","location","price")) 
+
+# 311 loyalty transactions exclude matches from exact price match
+loyalty_unmatched <- loyalty %>%
+  anti_join(transact_match, by = c("timestamp" = "datestamp","loyaltynum","location","price")) 
+
+# Fuzzy match with loyalty price to be lower or equal to cc price returns 496 entries (round 2)
+transact_match_2 <- cc_unmatched %>%
+  left_join(config, by = "last4ccnum") %>%
+  fuzzy_full_join(loyalty_unmatched, 
+                  by = c("loyaltynum", "location",
+                           "datestamp"="timestamp","price"="price"),
+                  match_fun=list(`==`, `==`, `==`, `>=`)) 
+
+# 219 transactions match with price range with price difference in increments of $20.
+transact_match_2 <- transact_match_2 %>%
+  drop_na() %>%
+  mutate(price_diff = price.x - price.y) %>%
+  filter(round(price_diff,0) %in% c(20,40,60,80)) 
+
+# 219 transactions match with price range with price difference in increments of $20.
+cashback <- ggplot(transact_match_2, 
+            aes(x = price_diff, fill = location.x, 
+                text = paste('Price Difference: $', price_diff,
+                         '<br>Location: ', location.x,
+                         '<br>Count: ', n))) + 
+  geom_histogram(boundary = 1, position = "stack") +
+  labs(title = "Distribution of Cashback by Locations",
+                   x = "Cashback Amount ($)", y = "Count", fill = "Locations") +
+  theme_minimal() +
+  theme(text = element_text(size=7))
+  
+ggplotly(cashback, tooltip = c("text"))  
+```
+
+
+#### 5.1.4 Join unmatched credit card transactions to loyalty transactions - round 3
+
+The remaining unmatched transactions are matched based on location and price (and not date) to check for any delayed postings of credit card transactions. Results show that 7 Kronos Mart credit card transactions were posted 1 day later than its associated loyalty card transactions.
+
+```{r match round 3}
+# 190 cc transactions exclude matches from match round 2 (cashback)
+cc_unmatched_2 <- cc_unmatched %>%
+  anti_join(transact_match_2, by = c("datestamp", 
+                                  "location" = "location.x",
+                                  "price" = "price.x",
+                                  "last4ccnum")) 
+
+# 92 loyalty transactions exclude matches from match round 2 (cashback)
+loyalty_unmatched_2 <- loyalty_unmatched %>%
+  anti_join(transact_match_2, by = c("timestamp" = "timestamp.y", 
+                                     "loyaltynum" = "loyaltynum.y",
+                                     "location" = "location.y",
+                                     "price" = "price.y")) 
+
+# Match remaining credit card and loyalty card transactions on location and price (round 3)
+transact_match_3 <- full_join(cc_unmatched_2, loyalty_unmatched_2, by = c("location","price"))
+
+# 7 Kronos Mart posts credit card transactions posted 1 day later than loyalty card date
+transact_match_3 <- transact_match_3 %>% 
+  drop_na() %>%
+  mutate(diff_date = datestamp - timestamp.y)
+        
+# Plot scatterplot of Kronos Mart delayed postings
+kronos_delay <- ggplot(transact_match_3 %>%
+  mutate(CreditCard = as_date(timestamp.x)) %>%
+  dplyr::select(price, location, CreditCard, timestamp.y) %>% 
+  rename(LoyaltyCard = timestamp.y) %>%
+  pivot_longer(!c(location,price), names_to = "type", values_to = "date"), 
+                       aes(x=date, y = price, color = type, label = price)) +
+  geom_point() +
+  geom_text(check_overlap = TRUE, size = 2, nudge_x = 0.5) +
+  scale_x_date(date_label = "%a \n%d %b") +  
+  theme_minimal() +
+  theme(text = element_text(size=7))+
+  labs(title = "Daily Transactions of Kronos Mart by Card Type",
+                   x = "Date", y = "Price ($)", color = "Card Type")
+
+ggplotly(kronos_delay)
+```
+
+
+#### 5.1.5 Join unmatched credit card transactions to loyalty transactions - round 4
+
+The 4th attempt to match the remaining unmatched transactions based on location and price range, whereby loyalty card price will be greater than credit card price, did not return many matches or a pattern. We will disregard the matches and treat the remainder 183 credit card and 85 loyalty card transactions as situations whereby employees used one of the two cards.
+
+```{r match round 4}
+# 183 cc transactions exclude matches from match round 3 (delayed posting)
+cc_unmatched_3 <- cc_unmatched_2 %>%
+  anti_join(transact_match_3, by = c("datestamp", 
+                                  "location",
+                                  "price",
+                                  "last4ccnum")) 
+
+# 85 loyalty transactions exclude matches from match round 3 (delayed posting)
+loyalty_unmatched_3 <- loyalty_unmatched_2 %>%
+  anti_join(transact_match_3, by = c("timestamp" = "timestamp.y", 
+                                     "loyaltynum" = "loyaltynum",
+                                     "location",
+                                     "price")) 
+
+# Match with loyalty price to be greater or equal to cc price (round 4)
+transact_match_4 <- left_join(cc_unmatched_3,config, by = "last4ccnum") %>%
+  fuzzy_full_join(loyalty_unmatched_3, by = c("location",
+                                              "price",
+                                              "datestamp"="timestamp",
+                                              "loyaltynum"),
+                  match_fun=list(`==`, 
+                              `<=`, 
+                              `==`,
+                              `==`)) %>%
+  drop_na()
+
+DT::datatable(transact_match_4, filter = 'top', width = 6)
+
+```
+
+
+#### 5.1.6 Final list of transaction records
+
+The final list of spend transactions yielded 1,575 records, which will be explored for patterns and anomalies.
+
+```{r trans final}
+
+transact_match_clean <- transact_match %>%
+  mutate(datestamp_loyalty = datestamp, price_diff = NA, diff_date = NA)
+
+transact_match_2_clean <- transact_match_2 %>%
+  dplyr::select(timestamp.x,location.x,price.x,last4ccnum,datestamp,loyaltynum.x,timestamp.y, price_diff) %>%
+  rename(timestamp = timestamp.x,
+         location = location.x,
+         price = price.x,
+         loyaltynum = loyaltynum.x,
+         datestamp_loyalty = timestamp.y) %>%
+  mutate(diff_date = NA)
+
+transact_match_3_clean <- transact_match_3 %>%
+  dplyr::select(timestamp.x,location,price,last4ccnum,datestamp,loyaltynum,timestamp.y,diff_date) %>%
+  rename(timestamp = timestamp.x, datestamp_loyalty = timestamp.y) %>%
+  mutate(price_diff = NA)
+
+loyalty_unmatched_3_clean <- loyalty_unmatched_3 %>%
+  rename(datestamp = timestamp) %>%
+  mutate(datestamp_loyalty = datestamp)
+
+# Final set of 1,575 credit card and loyalty card transactions
+trans_final <- transact_match_clean %>%
+  bind_rows(transact_match_2_clean) %>%
+  bind_rows(transact_match_3_clean) %>% 
+  bind_rows(loyalty_unmatched_3_clean) %>% 
+  bind_rows(cc_unmatched_3)
+
+DT::datatable(trans_final, filter = 'top', width = 6)
+```
+
+
+#### 5.1.7 Understand hourly spend patterns
+
+From the heatmap below, we observed that some locations only have credit card transactions posted in 1 hour within the day e.g. 
+
+- Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM
+- Daily Dealz at 6AM. 
+
+Another anomaly that we will investigate is the posting from Kronos Mart at 3AM.
+
+```{r hourly trans pattern}
+# Summarize credit card data by hour
+cc_hour <- trans_final %>% 
+  drop_na(timestamp) %>%
+  mutate(hour_cc = as.numeric(get_hour(timestamp))) %>% 
+  group_by(location,hour_cc) %>% 
+  count() %>%
+  rename("transactions" = n) %>%
+  ungroup() %>%
+  complete(location, hour_cc = full_seq(hour_cc, period = 1)) %>%
+  mutate(hour_cc = as.character.numeric_version(hour_cc)) 
+
+# Plot cc hourly data as heatmap using geom_tile()
+heatmap_cc <- ggplot(cc_hour, aes(x= hour_cc, y = location, fill = transactions, 
+                                  text = paste('No. of Transactions:', transactions,
+                                              '<br>Transaction Hour: ', hour_cc,
+                                              '<br>Location: ', location))) +
+  theme_minimal() +
+  theme(text = element_text(size=7))+
+  geom_tile(colour="white") +
+  labs(x = "Hour", y = "Location") +
+  scale_fill_gradient(low = "#E0E1E4", high = "#000000") +
+  scale_y_discrete(limits = rev) +
+  labs(title = "Hourly Credit Card Transactions",
+      x = "Hour", fill = "Transactions") 
+
+# Make heatmap interactive with plotly for exploration
+ggplotly(heatmap_cc, tooltip = c("text"))
+```
+
+
+#### 5.1.8 Understand daily spend patterns
+
+From the heatmap below, we see that the top 3 popular locations belong to the Food categories, such as Katerina's Cafe, Brew've Been Served and Hippokampos. Katerina's Cafe peaks on Saturday, Hippokampus is busier on weekdays than weekends and Brew've been Served is closed on weekends.
+
+```{r daily trans patterns}
+# Summarize spend data by day
+trans_day <- trans_final %>% 
+  mutate(date_min = pmin(datestamp, datestamp_loyalty, na.rm=TRUE)) %>%
+  group_by(location,date_min) %>% 
+  count() %>%
+  rename("transactions" = n) %>%
+  ungroup() 
+
+break_vec <- trans_day$date_min %>% c(seq(from = min(trans_day$date_min), to = max(trans_day$date_min),by = "day"))
+
+# Plot data as heatmap using geom_tile()
+heatmap_spend <- ggplot(trans_day, aes(x= date_min, y = location, fill = transactions, 
+                                  text = paste('No. of Transactions:', transactions,
+                                              '<br>Transaction Date: ', date_min,
+                                              '<br>Location: ', location))) +
+  theme_minimal() +
+  theme(text = element_text(size=7), axis.text.x=element_text(hjust=1)) +
+  geom_tile(colour="white") +
+  labs(x = "Date", y = "Location") +
+  scale_fill_gradient(low = "#E0E1E4", high = "#000000") +
+  scale_y_discrete(limits = rev) +
+  scale_x_date(breaks = break_vec, date_label = "%a \n%d %b") +  
+  labs(title = "Daily Spend Transactions",
+      x = "Date", fill = "Transactions") 
+
+# Make heatmap interactive with plotly for exploration
+ggplotly(heatmap_spend, tooltip = c("text"))
+```
+
+
+
+#### 5.1.9 Understand spend amount
+
+The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 
+9 credit cards (2276, 3506, 4530, 8642, 7792, 9152, 9220, 9614, 9735) register many high spends that are at industrial areas, likely belonging to the 9 truck drivers. 
+
+```{r trans amount}
+spend_cc <-  ggplot(trans_final, aes(x = last4ccnum, y = location, size = price*2, color = location, 
+                                     text = paste('Last 4 Credit Card Number:', last4ccnum,
+                                                  '<br>Loyalty Card Number:', loyaltynum,
+                                              '<br>Price: $', price,
+                                              '<br>Date: $', datestamp,
+                                              '<br>Location: ', location))) +
+  geom_point(alpha = 0.7) + 
+  theme_minimal() + 
+  theme(text = element_text(size=7), axis.text.x=element_text(angle=45, hjust=1)) +
+  scale_y_discrete(limits = rev) +
+  labs(title = "Spending at Each Location by Credit Card Number",
+      x = "Credit Card Number", y = "Location", color = "Location", size = "Price") 
+
+ggplotly(spend_cc, tooltip = c("text"))
+```
+
+
+
+#### 5.1.10 Understand Credit Card Spend Frequency
+
+From the chart below, we spot anomalies from the frequency of the spends worth investigating:
+- Credit card 9551 saw a peak spend of more than $10k with 5 transactions on 13 Jan and registering no spend for 2 days thereafter
+- Early ends - Credit card 5921's last spend was on 19 Jan
+- Late starts - Credit card 3547 started having spend on 12 Jan and 5010 started on 17 Jan
+- Sporadic records with high spends - Credit cards 2276, 3506, 4530, 7792, 8642 9152, 9220, 9614 
+
+```{r daily spend - spend frequency}
+ly_count <- trans_final %>%
+  group_by(datestamp, last4ccnum) %>%
+  summarise(n = n(), total_price = sum(price)) %>% 
+  drop_na() %>% ungroup()
+
+ly_count_p <- ggplot(ly_count, aes(x = datestamp, y = n, fill = total_price, 
+                                   text = paste('Total Spend $', total_price,
+                                              '<br>Frequency:', n,
+                                              '<br>Date:', datestamp))) + 
+  geom_bar(stat='identity') +
+  theme_minimal() +
+  theme(text = element_text(size=7)) +
+  facet_wrap(~last4ccnum) +
+  labs(title = "Transaction Frequency By Credit Card Number",
+      x = "Date", y = "Transaction Frequency", fill = "Total Spend ($)") 
+
+ggplotly(ly_count_p, tooltip = c("text"))
+```
+
+
