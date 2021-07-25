@@ -1928,6 +1928,41 @@ ggplotly(events_timeline_GG, tooltip = c("text"))
 ```
 
 
+```{r unknown events timeline}
+# Change data into long form for line chart
+events_matched_long_UK <- events_matched %>% 
+  filter(category == "Unknown") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_UK <- ggplot(events_matched_long_UK, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Unknown Locations", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_UK, tooltip = c("text"))
+```
+
 #### 5.3.11 Match Car IDs with credit card and loyalty card IDs
 
 After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 28 and 9.
@@ -2601,3 +2636,6 @@ events_timeline_mismatch_2 <- ggplot() +
 ggplotly(events_timeline_mismatch_2, tooltip = c("text"))                  
 
 ```
+
+
+### Please click [here](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-3/) for Part 3: Insights and Conclusion 
