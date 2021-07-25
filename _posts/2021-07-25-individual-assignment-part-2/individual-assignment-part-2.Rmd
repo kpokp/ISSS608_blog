@@ -35,7 +35,7 @@ knitr::opts_chunk$set(fig.retina = 3,
 
 ## 4. R Packages & Data
 
-These R packages are used:
+### 4.1 R Packages
 
 ```{r download packages}
 # The following R packages are used for respective parts of the workflow:
@@ -63,10 +63,10 @@ for (p in packages) {
 
 ```
 
-There are 4 csv datasets provided:
+### 4.2 Datasets
 
-
-- **Credit card data**: transaction of each credit card with timestamp, price and location. 
+#### 4.2.1 Credit Card Data 
+    + Contains transaction of each credit card with timestamp, price and location
     + 55 unique credit card numbers
     + 1,490 credit card transactions
 
@@ -83,8 +83,8 @@ cc <- cc %>% arrange(last4ccnum,timestamp) %>%
 glimpse(cc)
 ```
 
-
-- **Loyalty card data**: transaction on loyalty card with date, price and location. 
+#### 4.2.2 Loyalty Card Data 
+    + Contains transaction on loyalty card with date, price and location
     + 54 unique loyalty card numbers
     + 1,392 loyalty card transactions
 
@@ -101,8 +101,8 @@ loyalty <- loyalty %>% arrange(loyaltynum,timestamp) %>%
 glimpse(loyalty)
 ```
 
-
-- **GPS data**: timestamped latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
+#### 4.2.3 GPS Data 
+    + Contains timestamped latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
     + 40 unique Car IDs (1 to 35, 101, 104 to 107)
     + 685,169 records
 
@@ -119,8 +119,8 @@ gps <- gps %>% arrange(id, Timestamp) %>%
 glimpse(gps)
 ```
 
-
-- **Car assignment data**: full names of employees and ID of cars assigned 
+#### 4.2.4 Car Assignment Data 
+  + Contains full names of employees, department, job title and ID of cars assigned 
   + 44 known employees
   + 35 cars are given IDs and associated with employees
   + 9 trucks drivers are not assigned with particular vehicle ID
