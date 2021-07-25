@@ -629,22 +629,6 @@ Results from the maps show that Car ID 28 and 9 have GPS data issues:
 - Car ID 28's GPS coordinates are systematically misaligned. Correction can be done by systematically shifting all GPS coordinates using GASTech building as the anchoring position and averaging out the coordinates
 - Car ID 9's GPS records are spotty, journeys did not end and start in the same place. Correction can be done by extrapolating journeys. 
 
-```{r plot gps}
-# Plot gps paths by car IDs
-tmap_mode("view")
-tm_shape(ap) +
-  tm_rgb(ap, r=1,g=2,b=3,
-         alpha = NA,
-         saturation = 1,
-         interpolate = TRUE,
-         max.value = 255) +
-tm_shape(gps_path) +
-  tm_lines() +
-tm_facets(by = "id", ncol = 4) 
-```
-
-
-Closer look at GPS of Car 28 and 9:
 ```{r faulty gps of 28 & 9}
 # Zoom in on car 28 & 9
 gps_path_selected <- gps_path %>% filter(id %in% c("28","9"))
@@ -661,7 +645,6 @@ tm_shape(gps_path_selected) +
   tm_lines() +
 tm_facets(by = "id", ncol = 2)
 ```
-
 
 
 #### 5.2.4 Resolve data issues in Car 28 GPS log by taking the average coordinates over a wider time interval
@@ -949,6 +932,8 @@ layout(pp, images = list(
 
 #### 5.2.10 Identify likely geohash of employees' homes locations 
 
+We will pick out the geohash of the employees' homes based on the high frequency stays over the 2 weeks. 
+
 ```{r home config}
 # Home location config table
 location_labels_home <- home_freq %>% 
@@ -1054,6 +1039,1565 @@ home_para_cord
   
 ```
 
+#### 5.2.12 Identify anomalies from home stays
+
+From the interactive timeline, we observe some activities that stand out for further investigation: 
+- ID 1 was not home for 2 nights (6 Jan and 8 Jan)
+- ID 16 was staying overnight in Aliba starting 7 Jan 
+- ID 21 visited 2 homes from 10 Jan (Home 21 and 35) and visited an unknown location subsequently. Home location was also not detected on night of 14 Jan.
+- ID 22 and 28 visited unknown locations in the afternoon of 18 Jan
+- ID 24 was not home on 9 Jan
+- ID 25 visited an unknown location on 18 Jan that lasted for almost 24 hours
+- ID 31 was only in Aliba for 4day-3nights (16 to 19 Jan) and stayed at the Chostus hotel
+- Selected trucks were only parked at GASTech building from 6 Jan to 17 Jan, and they are parked at the GASTech building
+
+```{r home matched}
+# Match home events to home config table based on 150m radius and no duplicate was introduced - 494 events matched, 6 unmatched
+# Unknown locations will be investigated
+home_matched <- home %>%
+  geo_left_join(location_labels_home, by = c("lat", "long"), max_dist = 0.15, distance_col = "distance", unit = c("km")) %>% 
+  # Assume employee with car ID 9 to be home
+  mutate(location = ifelse(id == 9, "Home 9",location)) %>%
+  mutate(category = ifelse(id == 9, "Home",location)) 
+  
+# Plot timeline data as gantt chart
+home_timeline <- ggplot(home_matched,
+            aes(text = paste('id:', id,
+                         '<br>Event Start Time: ', as.POSIXct(event_start_time, format = "%m/%d/%Y  %H:%M:%S"),
+                         '<br>Event Stop Time: ', as.POSIXct(event_stop_time, format = "%m/%d/%Y  %H:%M:%S"),
+                         '<br>Location: ', location))) +
+  geom_linerange(mapping=aes(y=id, xmin=event_start_time, xmax=event_stop_time, color=location),size=I(1)) +
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", date_label = "%a \n%d %b") + 
+  theme_minimal() +
+  theme(axis.text.x=element_text(hjust=1)) +
+  # Add label
+  labs(title = "Home Locations by Car IDs",
+       x = "Date", y = "Car ID", color = "Home Locations") 
+  # Can add highlight when do not need tooltip
+  # gghighlight(is.na(location))
+
+
+# Make gantt chart interactive
+ggplotly(home_timeline, tooltip = c("text"))
+```
 
 
 
+### 5.3 Combine Spending Transactions with Events Detected from GPS
+
+#### 5.3.1 Find out the owners of the credit cards based on X percentage match with GPS events
+If the transaction time is within the time span of an event, it is assigned to that event
+
+```{r event and transactions}
+# Select events that are not staying at home by excluding home - 2,567 events
+POI <- events %>%
+  filter(is.na(home)) 
+
+# Match POI events with home locations to narrow list of locations to match
+POI_matched_home <- POI %>%
+  left_join(location_labels_home, by = "geohash")
+
+# Add the unknown locations from home events match to the rest of the events - 7 events
+unknown_home_location <- home_matched %>% filter(is.na(location)) %>%
+  dplyr::select(event_stop,home,event_date, event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name,department,title) %>%
+  rename(geohash = geohash.x)
+
+# List of events to be matched
+POI_2 <- POI_matched_home %>%
+  filter(is.na(location)) %>%
+  bind_rows(unknown_home_location)
+
+# Select distinct timestamp with each location from transactions
+trans_time <- cc %>%
+  dplyr::select(location, timestamp, last4ccnum) %>%
+  distinct(location, timestamp, last4ccnum) 
+
+# Remove locations that coincided with Home locations and add the unknown events from Home matching              
+# Perform fuzzy match of rest of the events and transactions by time windows
+POI_matched <- POI_2 %>%
+  fuzzy_left_join(trans_time,
+                  by = c("event_start_time" = "timestamp", "event_stop_time" = "timestamp"),
+                  match_fun = list(`<`,`>`)) 
+
+# Prepare the matched data for visualization - 996 records 
+# We would not pick the top matches as some locations are less visited.
+POI_matched_2 <- POI_matched %>% 
+  dplyr::select(!home) %>% 
+  drop_na(location.y) %>% 
+  # Round the lat long to reduce effect of spotty gps
+  mutate(lat = round(lat.x,3), long = round(long.x,3)) %>% 
+  # Remove Car ID 9 due to spotty GPS
+  filter(!id == "9") %>%
+  dplyr::select(location.y, lat, long, geohash) %>% 
+  group_by(location.y, lat, long, geohash) %>% 
+  summarise(n = n()) %>%
+  ungroup() %>% 
+  arrange(location.y, desc(n)) %>% 
+  group_by(location.y) %>%
+  ungroup() 
+
+glimpse(POI_matched_2)
+```
+
+
+
+#### 5.3.2 Plot the events that coincide with transactions to determine the lat long of POIs
+
+The interactive map shows locations where credit card and gps locations coincide. We notice that the highest frequency matches need not coincide with the POI placement on the map. As such, we visually pick out the geohash of each POI based on the the description on the map, coupled with the highest occurrence. 
+
+```{r POI coordinates, include = TRUE, warning = FALSE}
+# view the POIs over the jpeg map
+map <- ggplot(POI_matched_2, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+  geom_point(aes(color=location.y, size = n), alpha = 0.3) +
+  
+  # Add label
+  labs(title = "Likely POI Locations",
+                   x = "Longitude", y = "Latitude", color = "Location", size = "Size of Bubbles - Frequency")
+ 
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.5,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+
+Most likely geohashes identified per location:
+
+- Abila Airport: sw3thfv
+- Abila Scrapyard: sw3tjrh
+- Abila Zacharo: sw3tjmp
+- Ahaggo Museum: sw3tnpd
+- Albert's Fine Clothing: sw3tjx7
+- Bean There Done That: sw3tm2r
+- Brew've Been Served: sw3tnek 
+- Carlyle Chemical Inc.: sw3tnhm
+- Coffee Cameleon: sw3tn7s
+- Desafio Golf Course: sw3tm9y
+- Frank's Fuel: sw3tjq8
+- Frydos Autosupply n' More: sw3tnes 
+- Gelatogalore: sw3tjsm
+- General Grocer: sw3tjse
+- Guy's Gyros: sw3tnev 
+- Hallowed Grounds: sw3tnm1
+- Hippokampos: sw3tjxs
+- Jack's Magical Beans: sw3tnjb
+- Kalami Kafenion: sw3tjt8
+- Katerina's Cafe: sw3tnee 
+- Kronos Mart: sw3tjmx
+- Kronos Pipe and Irrigation: sw3tjj6
+- Maximum Iron and Steel: sw3tjm2
+- Nationwide Refinery: sw3tnk1 
+- Octavio's Office Supplies: sw3tjsk
+- Ouzeri Elian: sw3tjgn
+- Roberts and Sons: sw3tjt0
+- Shoppers' Delight: sw3tjgh
+- Stewart and Sons Fabrication: sw3tng3
+- U-Pump: sw3tjvy
+- Kronos Capitol: sw3tj7n
+
+#### 5.3.3 Create a config table that holds the likely geohashes of each POI 
+```{r POI config}
+# Create a config table of the POI with its most likely geohash
+POI_geohash <- tibble(location = c("Abila Airport","Abila Scrapyard","Abila Zacharo","Ahaggo Museum","Albert's Fine Clothing",
+                                   "Bean There Done That","Brew've Been Served","Carlyle Chemical Inc.","Coffee Cameleon",
+                                   "Desafio Golf Course","Frank's Fuel","Frydos Autosupply n' More",
+                                   "Gelatogalore","General Grocer","Guy's Gyros","Hallowed Grounds","Hippokampos",
+                                   "Jack's Magical Beans","Kalami Kafenion","Katerina's Cafe","Kronos Mart","Kronos Pipe and Irrigation",
+                                   "Maximum Iron and Steel","Nationwide Refinery","Octavio's Office Supplies","Ouzeri Elian","Roberts and Sons",
+                                   "Shoppers' Delight","Stewart and Sons Fabrication","U-Pump","Kronos Capitol"),
+                      geohash_likely = c("sw3thfv","sw3tjrh","sw3tjmp","sw3tnpd","sw3tjx7",
+                                        "sw3tm2r","sw3tnek","sw3tnhm","sw3tn7s",
+                                        "sw3tm9y","sw3tjq8","sw3tnes",
+                                        "sw3tjsm","sw3tjse","sw3tnev","sw3tnm1","sw3tjxs",
+                                        "sw3tnjb","sw3tjt8","sw3tnee","sw3tjmx","sw3tjj6",
+                                        "sw3tjm2","sw3tnk1","sw3tjsk","sw3tjgn","sw3tjt0",
+                                        "sw3tjgh","sw3tng3","sw3tjvy","sw3tj7n")) 
+
+POI_geohash_2 <- POI_matched_2 %>%
+  left_join(POI_geohash, by = c("geohash" = "geohash_likely")) %>% 
+  group_by(location) %>%
+  arrange(desc(n)) %>%
+  slice_head() %>%
+  ungroup() %>%
+  dplyr::select(lat, long, geohash, location) %>%
+  drop_na() %>%
+  
+  # as the cc timing did not match gps due to cc posting issues or non-spend locations
+  add_row(lat = 36.073, long = 24.864, geohash = "sw3tjycr", location = "Brewed Awakenings")
+  # add_row(lat = 36.066, long = 24.850, geohash = "sw3tjmx", location = "Kronos Mart")
+
+# Assign categories to add semantics to points-of-interest (POI)
+food <- c("Abila Zacharo","Bean There Done That","Brew've Been Served",
+          "Brewed Awakenings","Coffee Cameleon","Coffee Shack","Gelatogalore",
+          "Guy's Gyros", "Hallowed Grounds","Hippokampos","Jack's Magical Beans", 
+          "Kalami Kafenion", "Katerina's Cafe","Ouzeri Elian")
+retail <- c("Albert's Fine Clothing","Daily Dealz","General Grocer","Kronos Mart",
+            "Roberts and Sons", "Shoppers' Delight")
+gas <- c("Frank's Fuel","U-Pump")
+leisure <- c("Abila Airport","Ahaggo Museum","Chostus Hotel","Desafio Golf Course","Kronos Capitol")
+company <- c("Abila Scrapyard","Carlyle Chemical Inc.","Frydos Autosupply n' More",
+             "Kronos Pipe and Irrigation","Maximum Iron and Steel","GASTech",
+             "Nationwide Refinery","Octavio's Office Supplies","Stewart and Sons Fabrication")
+
+# Add categories to config table
+location_labels_POI <- POI_geohash_2 %>% mutate(category = 
+                    ifelse(location %in% food, "Food",
+                    ifelse(location %in% retail, "Retail",
+                    ifelse(location %in% gas, "Gas",
+                    ifelse(location %in% leisure, "Leisure",
+                    ifelse(location %in% company, "Company", NA)))))) 
+
+# Check that POI positions are correctly tagged on the map
+map <- ggplot(location_labels_POI, aes(long, lat, text = paste('Category:', category,
+                                                        '<br>Location: ', location,
+                                                        '<br>Geohash: ', geohash,
+                                                        '<br>Lat: ', lat,
+                                                        '<br>Long: ', long))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+  geom_point(aes(color= category), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "POI Locations", x = "Longitude", y = "Latitude", color = "Category")
+
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map, tooltip = c("text"))
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+#### 5.3.4 Match the rest of the 2,567 events + 7 unknown events with POIs and home locations
+```{r POI matched}
+# Create a config table with both POI and home locations
+location_labels <- location_labels_POI %>% rbind(location_labels_home) 
+
+# Match rest of events to POI config table based on 120m radius and pick the location that is closest to POI using geo-join
+# Unknown locations will be investigated
+POI_geo_matched <-  POI_2 %>%
+  rename(lat = lat.x, long = long.x) %>%
+  dplyr::select(-c(lat.y, long.y, location, category)) %>% 
+  geo_left_join(location_labels, by = c("lat", "long"), max_dist = 0.12, distance_col = "distance", unit = c("km")) %>% 
+  group_by(id, event_stop_time) %>%
+  arrange(desc(distance)) %>%
+  slice_head()
+
+```
+
+#### 5.3.5 Identify unknown events on the map
+```{r unknown events}
+# Isolate the unknown events
+unknown_location <- POI_geo_matched %>% 
+  filter(is.na(location)) %>%
+  dplyr::select(event_stop,home,event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name) %>%
+  rename(lat = lat.x, long = long.x, geohash = geohash.x)
+
+map <- ggplot(unknown_location, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+  geom_point(aes(color=id), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Unknown Locations by Car IDs", color = "Car ID")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+We observe some patterns from the map above:
+- Car ID 9's spotty gps cause events to be identified when there is none. We will ignore the events until we fix the journeys of Car ID 9 with its event start locations.
+- Excluding events from 9, there are 5 locations that cannot be explained. They are visited by Car ID 13, 15, 21 and 24
+
+#### 5.3.6 Do a match of all events against the 3 catgeories of locations - home, POI and unknown
+```{r events match config}
+# Create a config for suspicious locations tagged as unknown category
+location_labels_unknown <- unknown_location %>% 
+  filter(!id %in% c("9")) %>%
+  dplyr::select(lat,long,geohash,id) %>%
+  mutate(lat = round(lat,2),long=round(long,2)) %>%
+  group_by(lat,long,id) %>%
+  slice_head() %>%
+  ungroup() %>% 
+  group_by(lat,long) %>% 
+  mutate(location = paste0(id, collapse = "/")) %>%
+  arrange(geohash) %>%
+  slice_head() %>% 
+  dplyr::select(!c(id,event_stop_time)) %>%
+  ungroup() %>%
+  mutate(label = "Unknown", category = "Unknown") %>%
+  mutate(location = paste(label,location, sep = " ")) %>%
+  left_join(unknown_location, by = "geohash") %>%
+  dplyr::select(lat.y, long.y, geohash, location, category) %>%
+  group_by(geohash,location) %>%
+  slice_head() %>%
+  ungroup() %>%
+  rename(lat = lat.y, long = long.y) 
+
+# Add suspicious locations to the location labels config table
+location_labels_all <- location_labels %>% bind_rows(location_labels_unknown)
+
+# Clean home events
+home_matched <- filter(home_matched, !is.na(location)) %>%
+  dplyr::select(event_stop,home,event_date,event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name,department,title,location) %>%
+  mutate(category = "Home") %>%
+  rename(lat=lat.x,long=long.x,geohash=geohash.x) 
+# Clean home events
+POI_matched_home <- filter(POI_matched_home, !is.na(location)) %>%
+  dplyr::select(event_stop,home,event_date,event_start_time,event_stop_time,diff,lat.x,long.x,geohash,id,name,department,title,location,category) %>%
+  rename(lat=lat.x,long=long.x)    
+
+# Match 1,429 unmatched POI events that is closest distance to POI to avoid duplicates, 12 unmatched events from Car 9
+POI_3 <- POI_2 %>%
+  dplyr::select(event_stop,home,event_date,event_start_time,event_stop_time,diff,lat.x,long.x,geohash,id,name,department,title) %>%
+  geo_left_join(location_labels_all, by = c("lat.x" = "lat", "long.x" = "long"), max_dist = 0.12, distance_col = "distance", unit = c("km")) %>%
+  dplyr::select(event_stop,home,event_date,event_start_time,event_stop_time,diff,lat.x,long.x,geohash.x,id,name,department,title,location,category, distance) %>%
+  rename(lat=lat.x,long=long.x,geohash=geohash.x) %>%
+  group_by(event_start_time, id) %>%
+  arrange(distance) %>%
+  slice_head() %>% 
+  ungroup()
+
+# Match 12 starting POI events of Car9 that is closest distance to POI to avoid duplicates  
+POI_Car9 <- gps_name_diff %>%
+  filter((event_start == "start"|event_stop == "stop"), id == "9") %>% 
+  left_join(filter(POI_3,is.na(location)), by = c("Timestamp"="event_start_time")) %>% 
+  filter(!is.na(geohash.y)) %>%
+  dplyr::select(event_stop.y,home.y,event_date, Timestamp, event_stop_time,
+                        diff.y, lat.x, long.x, geohash.x, id.y, name.y, department.y, title.y) %>%
+  rename(event_stop=event_stop.y,home=home.y,event_start_time=Timestamp,
+                        diff=diff.y, lat=lat.x, long=long.x, geohash=geohash.x, id=id.y, name=name.y, department=department.y, title=title.y) %>%
+  geo_left_join(location_labels_all, by = c("lat","long"), max_dist = 0.25, distance_col = "distance", unit = c("km")) %>% 
+  group_by(event_start_time, id) %>%
+  arrange(distance) %>%
+  slice_head() %>% 
+  ungroup() %>%
+  dplyr::select(-c(lat.y,long.y,geohash.y)) %>%
+  rename(lat=lat.x, long=long.x,geohash=geohash.x,)
+
+# Match all 3,067 events 
+events_matched <- filter(POI_3,!is.na(location)) %>%
+  # Add 12 events from Car ID 9  
+  bind_rows(POI_Car9) %>%
+  # Add 493 homes events 
+  bind_rows(home_matched) %>%
+  # Add another 1,145 POI events matched to home locations
+  bind_rows(POI_matched_home)
+
+# Map all locations
+map <- ggplot(location_labels_all, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+  geom_point(aes(color=location), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Locations", color = "Location")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+#### 5.3.7 Plot timeline of events to check if all events are captured
+
+```{r events timeline}
+# Change data into long form for line chart
+events_matched_long <- events_matched %>% 
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+events_matched_long_highlight <- highlight_key(events_matched_long)
+
+# Plot timeline data as gantt chart
+events_timeline <- ggplot(events_matched_long_highlight, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=category,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Location \nCategory") 
+  
+
+# Make gantt chart interactive 
+ggplotly(events_timeline, tooltip = c("text"))
+```
+
+#### 5.3.8 Informal relationships between individuals through home visits
+
+We want to understand the informal relationships between employees through the homes they visit. We isolated the homes from the event timeline and picked out the homes which were visited by people besides their usual occupants. 
+
+- Lars (Home 2) from Engineering hosted a home party on Friday night for 15 colleagues from It and Engineering departments
+- Executives are being watched by 4 individuals who are likely connected - Loreto (15), Isia (16), Hennie (21) and Minke (24)
+- Hennie (21) visits home of Lidslse (14) and Birgitta (18) every day around dinner time and stays over on Wednesday and weekends
+- Isande (28) visits home of Adra, Varja and Felix (22/23/30) on weekend nights
+
+```{r home events timeline}
+# Change data into long form for line chart
+events_matched_long_home <- events_matched %>% 
+  filter(str_detect(location,"Home")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_home <- ggplot(events_matched_long_home, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_home, tooltip = c("text"))
+```
+
+
+```{r home events - House 2 timeline}
+# Change data into long form for line chart
+events_matched_long_home2 <- events_matched %>% 
+  filter(location == "Home 2") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_home2 <- ggplot(events_matched_long_home2, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Friday Dinner Party at Lars", y = "Car ID", x = "Date", color = "Locations") 
+
+
+# Make gantt chart interactive
+ggplotly(events_timeline_home2, tooltip = c("text"))
+```
+
+```{r home events - executive timeline}
+# Change data into long form for line chart
+events_matched_long_exechome <- events_matched %>% 
+  filter(location %in% c("Home 10", "Home 32", "Home 35", "Home 4")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_exechome <- ggplot(events_matched_long_exechome, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Midnight Surveillance of the Executives' Homes", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_exechome, tooltip = c("text"))
+```
+
+```{r home events - friends timeline}
+# Change data into long form for line chart
+events_matched_long_friendhome <- events_matched %>% 
+  filter(location %in% c("Home 14/18", "Home 22/23/30")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_friendhome <- ggplot(events_matched_long_friendhome, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Dating or Close Friends?", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_friendhome, tooltip = c("text"))
+```
+
+#### 5.3.9 Informal relationships between individuals through leisure
+
+We want to understand the informal relationships between employees through the leisure locations they visit. We isolated the Leisure events from timeline.
+
+- Executives - Ingrid (4), Ada (10), Willem (35) and Orhan (32) - play golf on Sunday afternoons and Sten (31) joined when he dropped by Aliba
+- Elsa (7) and Brand (33) visited Chostus hotel together on 8, 10, 14 and 17 Jan around lunch time
+- Kanon (28) and Borrasca (28) hung out at the museum and park together on 18 Jan
+
+```{r leisure events timeline}
+# Change data into long form for line chart
+events_matched_long_leisure <- events_matched %>% 
+  filter(category == "Leisure") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_leisure <- ggplot(events_matched_long_leisure, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Locations") 
+  
+  # Can add highlight when do not need tooltip
+  # gghighlight(location == "Home 2") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_leisure, tooltip = c("text"))
+```
+
+```{r leisure events - hotel timeline}
+# Change data into long form for line chart
+events_matched_long_hotel <- events_matched %>% 
+  filter(location == "Chostus Hotel") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_hotel <- ggplot(events_matched_long_hotel, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Afternoon Rendezvous at Chostus Hotel", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_hotel, tooltip = c("text"))
+```
+
+```{r leisure events - golf timeline}
+# Change data into long form for line chart
+events_matched_long_golf <- events_matched %>% 
+  filter(location == "Desafio Golf Course") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_golf <- ggplot(events_matched_long_golf, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - CEO Joins Executives' Weekly Sunday Golf", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_golf, tooltip = c("text"))
+```
+
+```{r leisure events - park timeline}
+# Change data into long form for line chart
+events_matched_long_park <- events_matched %>% 
+  filter(location %in% c("Ahaggo Museum","Kronos Capitol")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_park <- ggplot(events_matched_long_park, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Hang out At Museum and Park", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_park, tooltip = c("text"))
+```
+
+#### 5.3.10 Informal relationships between individuals through meals
+
+```{r food events timeline}
+# Change data into long form for line chart
+events_matched_long_food <- events_matched %>% 
+  filter(category == "Food") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_food <- ggplot(events_matched_long_food, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_food, tooltip = c("text"))
+```
+
+```{r food events - brewed awakenings timeline}
+# Change data into long form for line chart
+events_matched_long_BA <- events_matched %>% 
+  filter(location == "Brewed Awakenings") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_BA <- ggplot(events_matched_long_BA, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Surveillance at Brewed Awakenings", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_BA, tooltip = c("text"))
+```
+
+```{r food events - guy gyros timeline}
+# Change data into long form for line chart
+events_matched_long_GG <- events_matched %>% 
+  filter(location == "Guy's Gyros") %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp") 
+
+# Plot timeline data as gantt chart
+events_timeline_GG <- ggplot(events_matched_long_GG, 
+                          aes(text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category))) +
+  # Add line range
+  geom_line(mapping=aes(y=id,x=timestamp,color=location,group=rownum),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Locations by Car IDs - Surveillance at Guy's Gyros", y = "Car ID", x = "Date", color = "Locations") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_GG, tooltip = c("text"))
+```
+
+
+#### 5.3.11 Match Car IDs with credit card and loyalty card IDs
+
+After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 28 and 9.
+
+```{r match gps events with spend events}
+# Fuzzy match all events with credit card and loyalty card transactions to find unique pairs of car ID and credit card & loyalty card IDs
+trans_freq <- trans_final %>% group_by(last4ccnum) %>%
+  summarise(transaction_freq = n())
+
+spend_match_cc <- trans_final %>%
+  fuzzy_left_join(events_matched, 
+                  by = c("timestamp" = "event_start_time", 
+                        "timestamp" = "event_stop_time", "location" = "location"),
+                  match_fun = list(`>`,`<`, `==`)) %>% 
+  dplyr::select(name, department, title, id, last4ccnum, loyaltynum) %>%
+  group_by(name, department, title, id, last4ccnum, loyaltynum) %>%
+  summarise(n = n()) %>% 
+  ungroup() %>% 
+  left_join(trans_freq, by = "last4ccnum") %>% 
+  mutate(pct_match = n/transaction_freq*100)
+
+# Observe the matches that are more than 30%
+spend_match_cc_2 <- spend_match_cc %>% 
+  filter(pct_match >= 30) 
+
+# Plot chart to visualize 
+spend_match_cc_conf <- ggplot(spend_match_cc_2, aes(x=pct_match, y = id, color = last4ccnum, text = paste('Match:', pct_match, 
+                                           '<br>id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Credit Card:', last4ccnum))) +
+  geom_vline(xintercept=50, linetype="dotted", color = "black") +
+  geom_point() +
+  theme_minimal() +
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  # Add label
+  labs(title = "All Car IDs, except 9 and 28, have >50% Match \nBetween Credit Card Transactions and GPS Events", y = "Car ID", x = "Percentage Match (%)", color = "Credit Card Number") 
+
+ggplotly(spend_match_cc_conf, tooltip = c("text"))
+```  
+
+```{r car and credit card owners}
+# Select 9 & 28 top match
+spend_match_cc_3 <- spend_match_cc_2 %>% 
+  filter(id %in% c("9","28")) %>%
+  group_by(id) %>%
+  arrange(desc(pct_match)) %>% 
+  slice_head() %>%
+  ungroup()
+
+# Select matches above 50% match and remove duplicates
+car_spend_match <- spend_match_cc_2 %>% 
+  filter(pct_match >= 50) %>%
+  rbind(spend_match_cc_3) %>%
+  group_by(last4ccnum) %>%
+  arrange(desc(pct_match)) %>% 
+  slice_head() %>%
+  ungroup()
+
+# Ownership of Credit Card and Car ID
+DT::datatable(car_spend_match, filter = 'top', width = '100%', options = list(scrollX = TRUE), rownames = FALSE)
+```
+
+```{r unmatched cc}
+unmatched_cc <- cc %>% 
+  group_by(last4ccnum) %>%
+  summarise(n = n()) %>%
+  left_join(car_spend_match, by = "last4ccnum") %>% 
+  filter(is.na(id)) %>%
+  dplyr::select(last4ccnum)
+
+DT::datatable(unmatched_cc, filter = 'top', width = '100%', options = list(scrollX = TRUE), rownames = FALSE)
+```  
+
+
+#### 5.3.12 Plot timeline of events with spending transactions
+
+From the interactive timeline charts of the GPS locations and spend locations, we observe that employees usually make a corresponding spend on their credit cards when visiting a location with some exceptions. 
+
+```{r spend gps events fixed postings timeline}
+
+trans_final_id <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(!is.na(id))
+
+# Plot timeline data as gantt chart
+g1 <- ggplot() +
+  # Add line 
+  geom_line(events_matched_long, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) 
+    
+
+# Plot timeline data as gantt chart
+g2 <- ggplot() +
+  # Add point 
+  geom_point(trans_final_id,mapping=aes(y=id, x=timestamp, color=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=1) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "GPS and Spend Transactions by Locations and ID", y = "Car ID", x = "Date", color = "Locations") 
+
+  
+# Make gantt chart interactive
+subplot(ggplotly(g1, tooltip = c("text")), ggplotly(g2, tooltip = c("text")))
+```
+
+#### 5.3.13 Plot timeline of events that do not match spending transactions
+
+Find transactions that do not match with GPS locations and GPS locations that did not register any spend
+
+```{r spend gps events discrepancies}
+
+# Events with timestamp
+trans_final_id <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(!is.na(id)) %>%
+  dplyr::select(timestamp, datestamp, datestamp_loyalty, location, id, last4ccnum, loyaltynum.y, price)
+
+# GPS events at POIs
+POI_events_only <- events_matched %>% 
+  filter(!category %in% c("Home","Unknown")) %>% 
+  filter(!location %in% c("GASTech","Kronos Capitol"))
+
+# Fuzzy match all events with credit card and loyalty card transactions to find unique pairs of car ID and credit card & loyalty card IDs
+spend_match <- trans_final_id %>%
+  fuzzy_full_join(POI_events_only, 
+                  by = c("timestamp" = "event_start_time", 
+                        "timestamp" = "event_stop_time", 
+                        "location" = "location",
+                        "id" = "id"),
+                  match_fun = list(`>`,`<`,`==`,`==`))
+
+spend_mismatch <- spend_match %>%
+  filter(is.na(timestamp)|is.na(event_start_time))
+
+# Change data into long form for line chart
+gps_mismatched_long <- spend_mismatch %>% 
+  filter(!is.na(event_start_time)) %>% 
+  rename(id = id.y, location = location.y) %>% 
+  dplyr::select(event_date, event_start_time, event_stop_time, diff, lat, long, geohash, id, name, department, title, location, category) %>%
+  mutate(rownum = row_number()) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+spend_mismatch_prep <- spend_mismatch %>%
+  filter(!is.na(timestamp)) %>%
+  rename(id = id.x, location = location.x) %>%
+  dplyr::select(timestamp, datestamp, datestamp_loyalty, location, id, last4ccnum, loyaltynum.y, price)
+                  
+# Plot timeline data as gantt chart
+events_timeline_mismatch <- ggplot() +
+  # Add line & point
+  geom_line(gps_mismatched_long, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(spend_mismatch_prep, mapping=aes(y=id, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Mismatch Locations", y = "Car ID", x = "Date", color = "Locations", fill = "Locations") 
+  
+# Make gantt chart interactive
+ggplotly(events_timeline_mismatch, tooltip = c("text"))                  
+```
+
+
+Kronos Mart credit card postings were posted approximately 12 hours after the purchase was made.  
+```{r spend + gps events  - Kronos Mart timeline}
+# Change data into long form for line chart
+trans_final_KM <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(location == "Kronos Mart")
+
+events_matched_long_KM <- events_matched_long %>%
+  filter(location == "Kronos Mart")
+
+# Plot timeline data as gantt chart
+events_timeline_spend_KM <- ggplot() +
+  # Add line & point
+  geom_line(events_matched_long_KM, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_KM,mapping=aes(y=id, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Kronos Mart - Visits and Spend Transactions Mismatched", y = "Car ID", x = "Date", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_spend_KM, tooltip = c("text"))
+```
+
+Nils (Car ID 1) credit card (9551) was used at Frydos Autosupply n More on 13 Jan at but he was not present at the location based on his GPS. Nils was actually at Ouzeri Elian. Instead, Minke (Car ID 24) was present at the shop. We can infer that Minke had stolen Nils' credit card for fraudulent use. 
+```{r spend gps events Frydos Autosupply n More timeline}
+
+# Change data into long form for line chart
+trans_final_FA <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(location == "Frydos Autosupply n' More")
+
+events_matched_long_FA <- events_matched_long %>%
+  filter(location == "Frydos Autosupply n' More")
+
+# Plot timeline data as gantt chart
+events_timeline_spend_FA <- ggplot() +
+  # Add line & point
+  geom_line(events_matched_long_FA, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_FA,mapping=aes(y=id, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Frydos Autosupply n' More - \nSpend on 13 Jan by Nils' Credit Card Not Supported by GPS", y = "Car ID", x = "Date", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+  
+# Make gantt chart interactive
+ggplotly(events_timeline_spend_FA, tooltip = c("text"))
+```
+
+
+Matching the GPS and spend transactions for the Food establishments with fixed credit card postings shows that the credit card postings are usually done on the same day of the purchase. 
+```{r spend gps events food timeline}
+
+# Change data into long form for line chart
+trans_final_cafe <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(location %in% c("Bean There Done That", "Brewed Awakenings","Jack's Magical Beans"))
+
+events_matched_long_cafe <- events_matched_long %>%
+  filter(location %in% c("Bean There Done That", "Brewed Awakenings","Jack's Magical Beans"))
+
+# Plot timeline data as gantt chart
+events_timeline_spend_cafe <- ggplot() +
+  # Add line & point
+  geom_line(events_matched_long_cafe, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_cafe,mapping=aes(y=id, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Cafes with Fixed Posting - \nVisits and Spend Transactions Mismatched", y = "Car ID", x = "Date", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+  
+# Make gantt chart interactive
+ggplotly(events_timeline_spend_cafe, tooltip = c("text"))
+```
+
+
+```{r individual event - 22 & 28 timeline}
+# Change data into long form for line chart
+events_matched_long_2 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("22","28")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_2 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("22","28")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_2 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_2, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_2,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+
+  facet_wrap(~id, ncol = 2) +
+
+  # Add label
+  labs(title = "Locations Visted By Kanon(22) and Borrasca(28) - \nCouple Dating?", y = "Event Start Date", x = "Time", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_2, tooltip = c("text"))
+```
+
+Bertrand changed credit cards. 
+
+```{r individual event - 29 timeline}
+# Change data into long form for line chart
+events_matched_long_3 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("29")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_3 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("29")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_3 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_3, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_3,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+
+  # Add label
+  labs(title = "Locations Visted By Bertrand (29) - \nChanged Credit Card After Erratic Night", y = "Event Start Date", x = "Time", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_3, tooltip = c("text"))
+```
+
+
+```{r individual event - 9 timeline}
+# Change data into long form for line chart
+events_matched_long_5 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("9")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_5 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("9")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_5 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_5, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_5,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+
+  # Add label
+  labs(title = "Locations Visted By Gustav (9) - \nPurchase Made on Foot?", y = "Event Start Date", x = "Time", 
+       color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_5, tooltip = c("text"))
+```
+
+Minke stole Lar's credit card.
+```{r individual event - 1 & 24 timeline}
+# Change data into long form for line chart
+events_matched_long_4 <- events_matched %>% 
+  mutate(event_date_end = as_date(event_stop_time)) %>%
+  mutate(flag = ifelse(event_date_end > event_date,1,0)) %>%
+  filter(flag == 0) %>%
+  filter(id %in% c("1","24")) %>%
+  mutate(event_start_time = format(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_start_time = as.POSIXct(event_start_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = format(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(event_stop_time = as.POSIXct(event_stop_time, format = "%H:%M:%S")) %>%
+  mutate(rownum = row_number()) %>%
+  dplyr::select(!event_stop) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+trans_final_4 <- car_spend_match %>%
+  left_join(trans_final, by = c("last4ccnum")) %>%
+  filter(id %in% c("1","24")) %>%
+  mutate(timestamp = format(timestamp, format = "%H:%M:%S")) %>%
+  mutate(timestamp = as.POSIXct(timestamp, format = "%H:%M:%S"))
+
+# Plot timeline data as gantt chart
+events_timeline_4 <- ggplot() +
+  # Add line range
+  geom_line(events_matched_long_4, mapping=aes(y=event_date,x=timestamp,color=location,group=rownum, text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Tite:', title,
+                                           '<br>Timestamp:', format(timestamp, format = "%H:%M"),
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(trans_final_4,mapping=aes(y=datestamp, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() +
+
+  # Modify scale
+  scale_y_date(breaks="1 day", labels=label_date_short()) +
+  scale_x_datetime(breaks="1 hour", labels=time_format(format = "%H:%M", tz = Sys.timezone(location=TRUE))) + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+
+  facet_wrap(~id, ncol = 2) +
+
+  # Add label
+  labs(title = "Locations Visted By Nils (1) and  Minke (24) - \nMinke Stole Lar's Credit Card?", y = "Event Start Date", x = "Time", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+
+# Make gantt chart interactive
+ggplotly(events_timeline_4, tooltip = c("text"))
+
+```
+
+Find transactions that do not match with GPS locations and GPS locations that did not register any spend
+```{r spend gps events remaining discrepancies}
+
+# GPS events at POIs
+POI_events_only_2 <- events_matched %>% 
+  filter(!category %in% c("Home","Unknown")) %>% 
+  filter(!location %in% c("GASTech","Kronos Capitol","Kronos Mart","Bean There Done That","Brewed Awakenings","Jack's Magical Beans")) %>%
+  filter(!id %in% c("22","28","29"))
+
+# Fuzzy match all events with credit card and loyalty card transactions to find unique pairs of car ID and credit card & loyalty card IDs
+spend_match_4 <- trans_final_id %>%
+  filter(!location %in% c("GASTech","Kronos Capitol","Kronos Mart","Bean There Done That","Brewed Awakenings","Jack's Magical Beans")) %>%
+  filter(!id %in% c("22","28","29")) %>%
+  fuzzy_full_join(POI_events_only_2, 
+                  by = c("timestamp" = "event_start_time", 
+                        "timestamp" = "event_stop_time", 
+                        "location" = "location",
+                        "id" = "id"),
+                  match_fun = list(`>`,`<`,`==`,`==`))
+
+spend_mismatch_2 <- spend_match_4 %>%
+  filter(is.na(timestamp)|is.na(event_start_time))
+
+# Change data into long form for line chart
+gps_mismatched_long_2 <- spend_mismatch_2 %>% 
+  filter(!is.na(event_start_time)) %>% 
+  rename(id = id.y, location = location.y) %>% 
+  dplyr::select(event_date, event_start_time, event_stop_time, diff, lat, long, geohash, id, name, department, title, location, category) %>%
+  mutate(rownum = row_number()) %>%
+  pivot_longer(cols = starts_with("event_st"), names_to = "event_start_stop", values_to = "timestamp")
+
+spend_mismatch_prep_2 <- spend_mismatch_2 %>%
+  filter(!is.na(timestamp)) %>%
+  rename(id = id.x, location = location.x) %>%
+  dplyr::select(timestamp, datestamp, datestamp_loyalty, location, id, last4ccnum, loyaltynum.y, price)
+                  
+# Plot timeline data as gantt chart
+events_timeline_mismatch_2 <- ggplot() +
+  # Add line & point
+  geom_line(gps_mismatched_long_2, mapping=aes(y=id,x=timestamp,color=location,group=rownum, 
+                                             text = paste('id:', id,
+                                           '<br>Name:', name,
+                                           '<br>Department:', department,
+                                           '<br>Title:', title,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location,
+                                           '<br>Category: ', category)),size=1) +
+  geom_point(spend_mismatch_prep_2, mapping=aes(y=id, x=timestamp, fill=location,
+                                        text = paste('id:', id,
+                                           '<br>Last 4 Credit Card Num:', last4ccnum,
+                                           '<br>Loyalty Num:', loyaltynum.y,
+                                           '<br>Price: $', price,
+                                           '<br>Timestamp:', timestamp,
+                                           '<br>Location: ', location)),size=4, alpha=0.3) +
+  
+  # Change theme
+  theme_minimal() + 
+  
+  # Modify scale
+  scale_y_discrete(limits = rev) +
+  scale_x_datetime(date_breaks="1 day", labels =label_date_short()) + 
+  theme(axis.text.x=element_text(hjust=1)) +
+    
+  # Add label
+  labs(title = "Mismatch Locations", y = "Car ID", x = "Date", color = "Locations", fill = "Locations") 
+  
+# Make gantt chart interactive
+ggplotly(events_timeline_mismatch_2, tooltip = c("text"))                  
+
+```

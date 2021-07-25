@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["individual-assignment-part-3_files/anchor/anchor.min.js","individual-assignment-part-3_files/bowser/bowser.min.js","individual-assignment-part-3_files/distill/template.v2.js","individual-assignment-part-3_files/header-attrs/header-attrs.js","individual-assignment-part-3_files/jquery/jquery.min.js","individual-assignment-part-3_files/popper/popper.min.js","individual-assignment-part-3_files/tippy/tippy-bundle.umd.min.js","individual-assignment-part-3_files/tippy/tippy-light-border.css","individual-assignment-part-3_files/tippy/tippy.css","individual-assignment-part-3_files/tippy/tippy.umd.min.js","individual-assignment-part-3_files/webcomponents/webcomponents.js"]}
+  {"type":"character","attributes":{},"value":["images/Q1_cashback.png","images/Q1_fixedhour.png","images/Q1_highspend.png","images/Q1_highspend2.png","images/Q1_kronos.png","images/Q1_multicards.png","images/Q1_popular.png","images/Q1_sparse.png","images/Q2_bertrand.png","images/Q2_dating.png","images/Q2_fixedhour.png","images/Q2_gustav.png","images/Q2_highspend.png","images/Q2_highspend2.png","images/Q2_kronos.png","images/Q3_ccowners.png","images/Q3_uncertainty.png","images/Q3_unmatchedcc.png","images/Q4_dating.png","images/Q4_golf.png","images/Q4_homesurv.png","images/Q4_hotel.png","images/Q4_lars.png","images/Q4_sharedhomes.png","images/Q4_visits.png","individual-assignment-part-3_files/anchor/anchor.min.js","individual-assignment-part-3_files/bowser/bowser.min.js","individual-assignment-part-3_files/distill/template.v2.js","individual-assignment-part-3_files/header-attrs/header-attrs.js","individual-assignment-part-3_files/jquery/jquery.min.js","individual-assignment-part-3_files/popper/popper.min.js","individual-assignment-part-3_files/tippy/tippy-bundle.umd.min.js","individual-assignment-part-3_files/tippy/tippy-light-border.css","individual-assignment-part-3_files/tippy/tippy.css","individual-assignment-part-3_files/tippy/tippy.umd.min.js","individual-assignment-part-3_files/webcomponents/webcomponents.js"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1500,52 +1500,123 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <h3 id="question-1">Question 1</h3>
 <p>Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.</p>
 <h4 id="q1-most-popular-locations">Q1 Most popular locations</h4>
-<p>The top 3 popular locations belong to the Food categories, such as Katerina’s Cafe, Brew’ve Been Served and Hippokampos. Katerina’s Cafe peaks on Saturday, Hippokampus is busier on weekdays than weekends and Brew’ve been Served is closed on weekends.</p>
+<p>The top 3 popular locations belong to the Food categories, such as Katerina’s Cafe, Brew’ve Been Served and Hippokampos. Katerina’s Cafe peaks on Saturday, Hippokampus is busier on weekdays than weekends and Brew’ve been Served is closed on weekends. <img src="images/Q1_popular.png" id="id" class="class" style="width:100.0%" alt="Figure 1: Daily Spend Transactions Heatmap" /></p>
 <h4 id="q1-anomaly---credit-card-posting-at-fixed-hour">Q1 Anomaly - Credit Card Posting at Fixed Hour</h4>
-<p>Some locations only have credit card transactions posted in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack’s Magical Beans, Coffee Shack at 12PM. Corrections: Correct posting timing if GPS record shows otherwise.</p>
+<p>Some locations only have credit card transactions posted in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack’s Magical Beans, Coffee Shack at 12PM. Corrections: Correct posting timing if GPS record shows otherwise. <img src="images/Q1_fixedhour.png" id="id" class="class" style="width:100.0%" alt="Figure 2: Hourly Spend Transactions Heatmap" /></p>
 <h4 id="q1-anomaly---kronos-mart-post-credit-card-record-1-day-late">Q1 Anomaly - Kronos Mart Post Credit Card Record 1 Day Late</h4>
-<p>Kronos Mart’s credit card postings usually come 1 day late, which result in strange timing of postings at 3-9AM. Corrections: Correct posting timing based on available GPS record or take the date of loyalty card record.</p>
+<p>Kronos Mart’s credit card postings usually come 1 day late, which result in strange timing of postings at 3-9AM. Corrections: Correct posting timing based on available GPS record or take the date of loyalty card record. <img src="images/Q1_kronos.png" id="id" class="class" style="width:100.0%" alt="Figure 3: Daily Transactions of Kronos Mart by Card Type" /></p>
 <h4 id="q1-anomaly---cashbacks-in-multiples-of-20">Q1 Anomaly - Cashbacks in Multiples of $20</h4>
-<p>Some loyalty card transactions have prices lower than the corresponding credit card transactions. The denominations are usually in multiples of $20, ranging from $20 to $80. Locations vary widely, suggesting a loyalty cashback scheme. Corrections: Use credit card amount as loyalty price is non-consequential to investigation.</p>
+<p>Some loyalty card transactions have prices lower than the corresponding credit card transactions. The denominations are usually in multiples of $20, ranging from $20 to $80. Locations vary widely, suggesting a loyalty cashback scheme. Corrections: Use credit card amount as loyalty price is non-consequential to investigation. <img src="images/Q1_cashback.png" id="id" class="class" style="width:100.0%" alt="Figure 4: Distribution of Cashback Amount by Locations" /></p>
 <h4 id="q1-anomaly---multiple-credit-cards-to-loyalty-cards">Q1 Anomaly - Multiple Credit Cards to Loyalty Cards</h4>
-<p>Unexpected relationships between credit card 1286 and loyalty card L3288, and loyalty card L6267 is associated with credit cards 6691 &amp; 6899. Corrections: Care was taken to join credit card and loyalty card transactions to prevent duplication.</p>
+<p>Unexpected relationships between credit card 1286 and loyalty card L3288, and loyalty card L6267 is associated with credit cards 6691 &amp; 6899. Corrections: Care was taken to join credit card and loyalty card transactions to prevent duplication. <img src="images/Q1_multicards.png" id="id" class="class" style="width:100.0%" alt="Figure 5: Network Graph of Credit Card to Loyalty Card Relationships" /></p>
 <h4 id="q1-anomaly---high-spend-due-to-possible-fraud">Q1 Anomaly - High Spend Due to Possible Fraud</h4>
-<p>The highest spend on the credit card is $10k on Frydos Autospply n’ More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas tying to the 9 truck drivers. The other highest spend that is not in industrial location is on Albert’s Fine Clothing by credit card 1321.</p>
-<p>Using the data table, we noticed that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud.</p>
+<p>Figure 6 shows that the highest spend on the credit card is $10k on Frydos Autosupply n’ More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards (boxed in red) register many high spends that are at industrial areas likely tied to the 9 truck drivers. The other highest spend that is not in industrial location is on Albert’s Fine Clothing by credit card 1321.</p>
+<figure>
+<img src="images/Q1_highspend.png" id="id" class="class" style="width:100.0%" alt="Figure 6: Spending at Each Location by Credit Card Number" /><figcaption aria-hidden="true">Figure 6: Spending at Each Location by Credit Card Number</figcaption>
+</figure>
+<p>We noticed drom Figure 7 that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud. <img src="images/Q1_highspend2.png" id="id" class="class" style="width:100.0%" alt="Figure 7: Daily Transaction Frequency by Credit Card Number" /></p>
 <h4 id="q1-anomaly---sparse-spends-due-to-multiple-cards">Q1 Anomaly - Sparse Spends due to Multiple Cards</h4>
+<p>From Figure 8. below, we spot anomalies from the frequency of the spends worth investigating:</p>
+<ul>
+<li>Early ends (highlighted in red) - Credit card 5921’s last spend was on 19 Jan</li>
+<li>Late starts (highlighted in red) - Credit card 3547 started having spend on 12 Jan and 5010 started on 17 Jan</li>
+<li>Sporadic records with high spends (highlighted in green) - Credit cards 2276, 3506, 4530, 7792, 8642 9152, 9220, 9614</li>
+</ul>
+<figure>
+<img src="images/Q1_sparse.png" id="id" class="class" style="width:100.0%" alt="Figure 8: Daily Transaction Frequency by Credit Card Number" /><figcaption aria-hidden="true">Figure 8: Daily Transaction Frequency by Credit Card Number</figcaption>
+</figure>
 <h3 id="question-2">Question 2</h3>
 <p>Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.</p>
-<h4 id="q2-anomaly---confirm-credit-card-posting-at-fixed-hour-was-wrong">Q2 Anomaly - Confirm Credit Card Posting at Fixed Hour was Wrong</h4>
-<p>Bean There Done That, Brewed Awakenings and Jack’s Magic Beans only operate in weekday mornings and posted credit card transactions at 12 noon.</p>
+<h4 id="q2-anomaly---confirm-credit-card-posting-at-food-outlets-at-fixed-hour-was-wrong">Q2 Anomaly - Confirm Credit Card Posting at Food Outlets at Fixed Hour was Wrong</h4>
+<p>Bean There Done That, Brewed Awakenings and Jack’s Magic Beans only operate on weekday mornings and posted credit card transactions at 12 noon.</p>
+<figure>
+<img src="images/Q2_fixedhour.png" id="id" class="class" style="width:100.0%" alt="Figure 9: Timeline of Transaction and GPS Event at Food Outlets with 12PM Credit Card Postings" /><figcaption aria-hidden="true">Figure 9: Timeline of Transaction and GPS Event at Food Outlets with 12PM Credit Card Postings</figcaption>
+</figure>
 <h4 id="q2-anomaly---confirm-kronos-mart-posting-was-wrong">Q2 Anomaly - Confirm Kronos Mart Posting was Wrong</h4>
 <p>Kronos Mart’s credit card postings were posted around 12 hours after purchase.</p>
-<h4 id="q2-anomaly---confirm-high-spend-due-to-fraud">Q2 Anomaly - Confirm High Spend due to Fraud</h4>
-<p>Minke(24) likely stole Lars(1) credit card and made several spends, including a likely online purchase on Daily Dealz, and $10,000 at Frydos Autosupply n ’More.</p>
+<figure>
+<img src="images/Q2_kronos.png" id="id" class="class" style="width:100.0%" alt="Figure 10: Timeline of Transaction and GPS Event at Kronos Mart" /><figcaption aria-hidden="true">Figure 10: Timeline of Transaction and GPS Event at Kronos Mart</figcaption>
+</figure>
+<h4 id="q2-anomaly---confirm-high-spend-due-to-likely-fraud">Q2 Anomaly - Confirm High Spend due to Likely Fraud</h4>
+<p>Nils’ (Car ID 1) credit card had several unexplained spends, including a likely purchase at U Pump and $10,000 at Frydos Autosupply n ‘More. Minke (Car ID 24) was the only person at Frydos Autosupply n ’More when the high purchase was made on Nils’ card (Figure 11). And they were both at Hippokampos together briefly between 11.24PM and 11:31PM before the fraudulent purchases start (Figure 12).</p>
+<figure>
+<img src="images/Q2_highspend.png" id="id" class="class" style="width:100.0%" alt="Figure 11: Timeline of Transaction and GPS Event at Frydo’s Autosupply n’ More" /><figcaption aria-hidden="true">Figure 11: Timeline of Transaction and GPS Event at Frydo’s Autosupply n’ More</figcaption>
+</figure>
+<figure>
+<img src="images/Q2_highspend2.png" id="id" class="class" style="width:100.0%" alt="Figure 12: Timeline of Nil and Minke’s Transaction and GPS Event" /><figcaption aria-hidden="true">Figure 12: Timeline of Nil and Minke’s Transaction and GPS Event</figcaption>
+</figure>
 <h4 id="q2-anomaly---mismatch-of-credit-card-location-and-gps-location-due-to-car-pooling-and-shared-purchases">Q2 Anomaly - Mismatch of Credit Card Location and GPS Location due to Car Pooling and Shared Purchases</h4>
-<p>Kanon and Borrasca often drive out and hang out for meals, they</p>
+<p>Kanon (Car ID 22) and Borrasca (Car ID 28) often drive out and hang out for meals, they registered multiple purchases without supporting GPS locations (highlighted in red in Figure 13).</p>
+<figure>
+<img src="images/Q2_dating.png" id="id" class="class" style="width:100.0%" alt="Figure 13: Timeline of Kanon and Borrasca’s Transaction and GPS Event" /><figcaption aria-hidden="true">Figure 13: Timeline of Kanon and Borrasca’s Transaction and GPS Event</figcaption>
+</figure>
 <h4 id="q2-anomaly---mismatch-of-credit-card-location-and-gps-location-due-to-change-of-credit-cards">Q2 Anomaly - Mismatch of Credit Card Location and GPS Location due to Change of Credit Cards</h4>
-<p>Bertrand (29) changed his credit card after the first week.</p>
-<h4 id="q2-anomaly---gustav9s-mismatch-of-credit-card-location-and-gps-location">Q2 Anomaly - Gustav(9)’s Mismatch of Credit Card Location and GPS Location</h4>
-<p>There are transactions on Gustav’s credit card in the evenings when his GPS location shows that he should be at home. We suspect Gustav took other transportation (e.g. walk or cycle) to the shops near his home such as Hippokampus and Albert’s Fine Clothing to make those purchase.</p>
+<p>Bertrand (Car ID 29) changed his credit card from 5921 to 3547 on 12 Jan after an erratic night on 11 Jan late night, whereby he visited multiple places but registered no purchases.</p>
+<figure>
+<img src="images/Q2_bertrand.png" id="id" class="class" style="width:100.0%" alt="Figure 14: Timeline of Bertrand’s Transaction and GPS Event" /><figcaption aria-hidden="true">Figure 14: Timeline of Bertrand’s Transaction and GPS Event</figcaption>
+</figure>
+<h4 id="q2-anomaly---mismatch-of-credit-card-location-and-gps-location-due-to-other-transport-means">Q2 Anomaly - Mismatch of Credit Card Location and GPS Location Due to Other Transport Means</h4>
+<p>There were transactions on Gustav’s (Car ID 9) credit card in the evenings when his GPS location showed that he should be at home (highlighted in red in Figure 15). We suspect that Gustav took other transportation (e.g. walk or cycle) to the shops near his home such as Hippokampos and Albert’s Fine Clothing to make those purchase.</p>
+<figure>
+<img src="images/Q2_gustav.png" id="id" class="class" style="width:100.0%" alt="Figure 15: Timeline of Gustav’s Transaction and GPS Event" /><figcaption aria-hidden="true">Figure 15: Timeline of Gustav’s Transaction and GPS Event</figcaption>
+</figure>
 <h3 id="question-3">Question 3</h3>
 <p>Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.</p>
 <h4 id="q3-owners-of-credit-cards-and-loyalty-card">Q3 Owners of Credit Cards and Loyalty Card</h4>
-<h4 id="q3-evidence---credit-card-spends-without-gps-location-corroborated">Q3 Evidence - Credit Card Spends without GPS Location Corroborated</h4>
-<h4 id="q3-uncertainty---locations-cluster-close-to-each-other">Q3 Uncertainty - Locations Cluster Close to Each Other</h4>
+<p>We can infer the owners of each credit card and loyalty card as shown in Figure 16, except for 10 credit cards in Figure 17.</p>
+<figure>
+<img src="images/Q3_ccowners.png" id="id" class="class" style="width:100.0%" alt="Figure 16: Match Between Credit Card Num and Car IDs" /><figcaption aria-hidden="true">Figure 16: Match Between Credit Card Num and Car IDs</figcaption>
+</figure>
+<figure>
+<img src="images/Q3_unmatchedcc.png" id="id" class="class" style="width:100.0%" alt="Figure 17: Match Between Credit Card Num and Car IDs" /><figcaption aria-hidden="true">Figure 17: Match Between Credit Card Num and Car IDs</figcaption>
+</figure>
+<h4 id="q3-evidence---evidence-and-uncertainty">Q3 Evidence - Evidence and Uncertainty</h4>
+<p>The credit card transactions are matched with GPS events based on the time window and location. After matching the credit card transactions with GPS events, we discover that 50% threshold is able to pick up most of the matches, except Car ID 9 and 28. Using this rule of thumb, we will pick all credit card and Car ID matches that are above 50% match and the top percentage match for Car ID 9 and 28.</p>
+<p>We are not sure if the other credit cards</p>
+<figure>
+<img src="images/Q3_uncertainty.png" id="id" class="class" style="width:100.0%" alt="Figure 18: Match Between Credit Card Transactions and GPS Events" /><figcaption aria-hidden="true">Figure 18: Match Between Credit Card Transactions and GPS Events</figcaption>
+</figure>
 <h3 id="question-4">Question 4</h3>
 <p>Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.</p>
-<h4 id="q4-relationships---inga13-isia16-loreto15-hennie21-minke24-conducting-suspicious-activities-together">Q4 Relationships - Inga(13), Isia(16), Loreto(15), Hennie(21), Minke(24) conducting suspicious activities together</h4>
-<h4 id="q4-relationships---elsa7-and-brand33-have-rendezvous-at-chostus-hotel">Q4 Relationships - Elsa(7) and Brand(33) have rendezvous at Chostus Hotel</h4>
+<h4 id="q4-relationships---inga-car-id-13-isia-car-id-16-loreto-car-id-15-hennie-car-id-21-minke-car-id-24-visit-5-unknown-locations-at-different-times">Q4 Relationships - Inga (Car ID 13), Isia (Car ID 16), Loreto (Car ID 15), Hennie (Car ID 21), Minke (Car ID 24) visit 5 unknown locations at different times</h4>
+<figure>
+<img src="./images/Q4_.png" id="id" class="class" style="width:100.0%" alt="Figure 19: Timeline of GPS Event at Unknown Locations" /><figcaption aria-hidden="true">Figure 19: Timeline of GPS Event at Unknown Locations</figcaption>
+</figure>
+<h4 id="q4-relationships---elsa-car-id-7-and-brand-car-id-33-have-rendezvous-at-chostus-hotel">Q4 Relationships - Elsa (Car ID 7) and Brand (Car ID 33) have rendezvous at Chostus Hotel</h4>
 <p>Elsa(7) and Brand(33) visited Chostus Hotel on the same weekday afternoons for four different days. They drove their own cars and paid using their own credit cards.</p>
-<h4 id="q4-relationships---kanon22-and-borrasca28-are-seeing-each-other">Q4 Relationships - Kanon(22) and Borrasca(28) are seeing each other</h4>
+<figure>
+<img src="images/Q4_hotel.png" id="id" class="class" style="width:100.0%" alt="Figure 20: Timeline of GPS Event at Chostus Hotel" /><figcaption aria-hidden="true">Figure 20: Timeline of GPS Event at Chostus Hotel</figcaption>
+</figure>
+<h4 id="q4-relationships---kanon-car-id-22-and-borrasca-car-id-28-are-seeing-each-other">Q4 Relationships - Kanon (Car ID 22) and Borrasca (Car ID 28) are seeing each other</h4>
 <p>Kanon and Borrasca often drive out and hang out for meals. Kanon also visits Borrasca’s home at times. On Jan 18, Kanon and Borrasca went to Capitol in the morning, and to Museum at noon, to Hippokampos in the afternoon, and to Borrasca’s home at night together.</p>
+<figure>
+<img src="images/Q4_dating.png" id="id" class="class" style="width:100.0%" alt="Figure 20: Timeline of Transaction and GPS Event" /><figcaption aria-hidden="true">Figure 20: Timeline of Transaction and GPS Event</figcaption>
+</figure>
 <h4 id="q4-relationships---dinner-party-among-employees-from-engineers-and-it-departments">Q4 Relationships - Dinner party among employees from Engineers and IT departments</h4>
 <p>Lars held a home party on the evening of Jan 10, returning home earlier around 5PM that evening to prepare for it. He invited at least 15 colleagues: 12 people from the engineering department and 4 people from the IT department who stayed between 7PM and 11PM.</p>
-<h4 id="q4-relationships---shared-homes-of-employees">Q4 Relationships - Shared homes of employees</h4>
-<h4 id="q4-relationships---hennies-21-second-home">Q4 Relationships - Hennie’s (21) second home</h4>
+<figure>
+<img src="images/Q4_lars.png" id="id" class="class" style="width:100.0%" alt="Figure 21: Timeline of GPS Event of Lars’ Home" /><figcaption aria-hidden="true">Figure 21: Timeline of GPS Event of Lars’ Home</figcaption>
+</figure>
+<h4 id="q4-relationships---shared-homes-of-employees-from-various-departments">Q4 Relationships - Shared homes of employees from various departments</h4>
+<p>From the parallel coordinate plot in Figure , we see that 8 of the 15 employees who stay in shared homes are from the Security department.</p>
+<ul>
+<li>2 of the homes - Home 13/15/16/21 and Home 22/23/30 are occupied only by employees of the Security department.</li>
+<li>Home 13/15/16/21 occupants take up Perimeter and Site Control duties while Home 22/23/30 occupants are from the Badging Office and one of them is a Security Group Manager.</li>
+<li>The other 2 homes make up of employees from varied departments such as Engineering, Facilities, IT and Security IT.</li>
+</ul>
+<figure>
+<img src="images/Q4_sharedhomes.png" id="id" class="class" style="width:100.0%" alt="Figure 22: Characteristics of Employees Who Share Homes" /><figcaption aria-hidden="true">Figure 22: Characteristics of Employees Who Share Homes</figcaption>
+</figure>
+<h4 id="q4-relationships---hennies-car-id-21-second-home">Q4 Relationships - Hennie’s (Car ID 21) second home</h4>
+<p>Hennie visits Home 14/18 of Lidelse (Car ID 14) and Birgitta (Car ID 18) from Engineering department every day and stays over for a couple of nights per week.</p>
+<figure>
+<img src="images/Q4_visits.png" id="id" class="class" style="width:100.0%" alt="Figure 23: Timeline of Hennie’s Social Visit to Home 14/18" /><figcaption aria-hidden="true">Figure 23: Timeline of Hennie’s Social Visit to Home 14/18</figcaption>
+</figure>
 <h4 id="q4-relationships---executives-weekend-golf">Q4 Relationships - Executives’ weekend golf</h4>
 <p>Over the two weekends, the executives all went to play golf. Orhan missed the first weekend and joined only when CEO Sten joined when he was in Aliba.</p>
-<h4 id="q4-relationships---sharing-1-loyalty-card">Q4 Relationships - Sharing 1 Loyalty Card</h4>
+<figure>
+<img src="images/Q4_golf.png" id="id" class="class" style="width:100.0%" alt="Figure 24: Timeline of Executives’ Weekend Golf" /><figcaption aria-hidden="true">Figure 24: Timeline of Executives’ Weekend Golf</figcaption>
+</figure>
 <h3 id="question-5">Question 5</h3>
 <p>Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.</p>
 <h4 id="q5-location---drives-to-5-unknown-houses">Q5 Location - Drives to 5 unknown houses</h4>
