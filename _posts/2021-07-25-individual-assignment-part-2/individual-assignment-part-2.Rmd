@@ -2178,7 +2178,9 @@ ggplotly(events_timeline_mismatch, tooltip = c("text"))
 ```
 
 
-Kronos Mart credit card postings were posted approximately 12 hours after the purchase was made.  
+
+Kronos Mart credit card postings were posted approximately 12 hours after the purchase was made.
+
 ```{r spend + gps events  - Kronos Mart timeline}
 # Change data into long form for line chart
 trans_final_KM <- car_spend_match %>%
@@ -2226,7 +2228,9 @@ events_timeline_spend_KM <- ggplot() +
 ggplotly(events_timeline_spend_KM, tooltip = c("text"))
 ```
 
+
 Nils (Car ID 1) credit card (9551) was used at Frydos Autosupply n More on 13 Jan at but he was not present at the location based on his GPS. Nils was actually at Ouzeri Elian. Instead, Minke (Car ID 24) was present at the shop. We can infer that Minke had stolen Nils' credit card for fraudulent use. 
+
 ```{r spend gps events Frydos Autosupply n More timeline}
 
 # Change data into long form for line chart
@@ -2276,7 +2280,9 @@ ggplotly(events_timeline_spend_FA, tooltip = c("text"))
 ```
 
 
+
 Matching the GPS and spend transactions for the Food establishments with fixed credit card postings shows that the credit card postings are usually done on the same day of the purchase. 
+
 ```{r spend gps events food timeline}
 
 # Change data into long form for line chart
@@ -2325,6 +2331,7 @@ events_timeline_spend_cafe <- ggplot() +
 ggplotly(events_timeline_spend_cafe, tooltip = c("text"))
 ```
 
+Kanon (22) and Borrasca (28) seem to be dating based on their frequent co-location. 
 
 ```{r individual event - 22 & 28 timeline}
 # Change data into long form for line chart
@@ -2386,7 +2393,7 @@ events_timeline_2 <- ggplot() +
 ggplotly(events_timeline_2, tooltip = c("text"))
 ```
 
-Bertrand changed credit cards. 
+Bertrand changed credit cards after an erratic night on  11 Jan.
 
 ```{r individual event - 29 timeline}
 # Change data into long form for line chart
@@ -2447,6 +2454,8 @@ ggplotly(events_timeline_3, tooltip = c("text"))
 ```
 
 
+Gustav seem to have made purchases at outlets nearby his home as there are unexplained credit card transactions made when he was at home.
+
 ```{r individual event - 9 timeline}
 # Change data into long form for line chart
 events_matched_long_5 <- events_matched %>% 
@@ -2505,7 +2514,8 @@ events_timeline_5 <- ggplot() +
 ggplotly(events_timeline_5, tooltip = c("text"))
 ```
 
-Minke stole Lar's credit card.
+Minke stole Nil's credit card.
+
 ```{r individual event - 1 & 24 timeline}
 # Change data into long form for line chart
 events_matched_long_4 <- events_matched %>% 
@@ -2559,7 +2569,7 @@ events_timeline_4 <- ggplot() +
   facet_wrap(~id, ncol = 2) +
 
   # Add label
-  labs(title = "Locations Visted By Nils (1) and  Minke (24) - \nMinke Stole Lar's Credit Card?", y = "Event Start Date", x = "Time", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
+  labs(title = "Locations Visted By Nils (1) and  Minke (24) - \nMinke Stole Nil's Credit Card?", y = "Event Start Date", x = "Time", color = "GPS Locations - Line", fill = "Spend Locations - Circle") 
 
 # Make gantt chart interactive
 ggplotly(events_timeline_4, tooltip = c("text"))
@@ -2567,6 +2577,7 @@ ggplotly(events_timeline_4, tooltip = c("text"))
 ```
 
 Find transactions that do not match with GPS locations and GPS locations that did not register any spend
+
 ```{r spend gps events remaining discrepancies}
 
 # GPS events at POIs
@@ -2630,11 +2641,245 @@ events_timeline_mismatch_2 <- ggplot() +
   theme(axis.text.x=element_text(hjust=1)) +
     
   # Add label
-  labs(title = "Mismatch Locations", y = "Car ID", x = "Date", color = "Locations", fill = "Locations") 
+  labs(title = "Mismatch Locations", y = "Car ID", x = "Date", color = "GPS Locations - Lines", fill = "Credit Card Locations - Circle") 
   
 # Make gantt chart interactive
 ggplotly(events_timeline_mismatch_2, tooltip = c("text"))                  
 
+```
+
+#### 5.4.1 Map view of suspicious locations
+
+Besides looking at the event timeline, we want to observe if there are patterns to the routes taken to the suspicious locations by the suspects.
+
+#### Routes to unknown locations
+```{r}
+
+# Prepare paths for ID 13
+gps_path_1 <- gps_name_diff %>% 
+  mutate(day = as.character(get_day(Timestamp))) %>%
+  mutate(hour = get_hour(Timestamp)) %>%
+  filter(id %in% c("13")) %>%
+  filter(hour <= 13, hour >= 11) %>%
+  filter(day %in% c("7","9","10","13","15","16","17","18"))
+
+# Map all locations
+map <- ggplot(gps_path_1, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add path points
+  geom_point(mapping=aes(fill=day), size = 0.3) +
+  geom_point(location_labels_all, mapping=aes(long, lat, color=category, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Suspicious Locations by Inga - Car ID 13", color = "Location", x = "Longitude", y = "Latitude", fill = "Day of the Month")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+
+```{r}
+
+# Prepare paths for ID 15
+gps_path_2 <- gps_name_diff %>% 
+  mutate(day = as.character(get_day(Timestamp))) %>%
+  mutate(hour = get_hour(Timestamp)) %>%
+  filter(id %in% c("15")) %>%
+  filter(hour <= 13, hour >= 11) %>%
+  filter(day %in% c("7","8","9","11","13","14","15","17"))
+
+# Map all locations
+map <- ggplot(gps_path_2, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add path points
+  geom_point(mapping=aes(fill=day), size = 0.3) +
+  geom_point(location_labels_all, mapping=aes(long, lat, color=category, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Suspicious Locations by Loreto - Car ID 15", color = "Location", x = "Longitude", y = "Latitude", fill = "Day of the Month")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+```{r}
+
+# Prepare paths for ID 21 Hennie
+gps_path_3 <- gps_name_diff %>% 
+  mutate(day = as.character(get_day(Timestamp))) %>%
+  mutate(hour = get_hour(Timestamp)) %>%
+  filter(id %in% c("21")) %>%
+  filter(hour <= 13, hour >= 11) %>%
+  filter(day %in% c("8","9","10","11","13","16","15","17"))
+
+# Map all locations
+map <- ggplot(gps_path_3, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add path points
+  geom_point(mapping=aes(fill=day), size = 0.3) +
+  geom_point(location_labels_all, mapping=aes(long, lat, color=category, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Suspicious Locations by Hennie - Car ID 21", color = "Location", x = "Longitude", y = "Latitude", fill = "Day of the Month")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+
+```{r}
+# Prepare paths for ID 24 Minke
+gps_path_4 <- gps_name_diff %>% 
+  mutate(day = as.character(get_day(Timestamp))) %>%
+  mutate(hour = get_hour(Timestamp)) %>%
+  filter(id %in% c("24")) %>%
+  filter(hour <= 13, hour >= 11) %>%
+  filter(day %in% c("7","8","9","10","14","15","16"))
+
+# Map all locations
+map <- ggplot(gps_path_4, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add path points
+  geom_point(mapping=aes(fill=day), size = 0.3) +
+  geom_point(location_labels_all, mapping=aes(long, lat, color=category, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Suspicious Locations by Minke - Car ID 24", color = "Location", x = "Longitude", y = "Latitude", fill = "Day of the Month")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+
+#### Routes to surveillance
+
+```{r routes to surveillance}
+# Prepare paths for home surveillance
+gps_path_5 <- gps_name_diff %>% 
+  mutate(day = as.character(get_day(Timestamp))) %>%
+  mutate(hour = get_hour(Timestamp)) %>%
+  filter(id %in% c("24","15","16","21")) %>%
+  filter(hour <= 7, hour >= 0) %>%
+  filter(day %in% c("7","9","11","14"))
+
+# Map all locations
+map <- ggplot(gps_path_5, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add path points
+  geom_point(mapping=aes(fill=day), size = 0.3) +
+  geom_point(location_labels_all %>% filter(category == "Home"), 
+             mapping=aes(long, lat, color=location, text = paste("geohash:", geohash)), alpha = 0.8, size = 3) +
+  
+  # Add label
+  labs(title = "Visits to Executives' Homes", color = "Location", x = "Longitude", y = "Latitude", fill = "Day of the Month")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
 ```
 
 

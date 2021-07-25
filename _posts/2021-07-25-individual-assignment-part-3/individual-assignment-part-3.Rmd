@@ -137,9 +137,11 @@ We have found the reasons for most of the anomalies and mismatch between credit 
 ### Question 4
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
 
-#### Q4 Relationships - Inga (Car ID 13), Isia (Car ID 16), Loreto (Car ID 15), Hennie (Car ID 21), Minke (Car ID 24) visit 5 unknown locations at different times
+#### Q4 Relationships - Inga (Car ID 13), Loreto (Car ID 15), Hennie (Car ID 21), Minke (Car ID 24) visit 5 unknown locations at different times
 
-![Figure 19: Timeline of GPS Event at Unknown Locations](./images/Q4_.png){#id .class width=100%}
+Inga (Car ID 13), Loreto (Car ID 15), Hennie (Car ID 21), Minke (Car ID 24) have been making stops at 5 unknown locations during noon time over the 2 weeks. They probably are in cahoots conducting some suspicious activities. 
+
+![Figure 19: Timeline of GPS Event at Unknown Locations](./images/Q4_unknown.png){#id .class width=100%}
 
 #### Q4 Relationships - Elsa (Car ID 7) and Brand (Car ID 33) have rendezvous at Chostus Hotel
 Elsa(7) and Brand(33) visited Chostus Hotel on the same weekday afternoons for four different days. They drove their own cars and paid using their own credit cards. 
@@ -182,14 +184,28 @@ Do you see evidence of suspicious activity? Identify 1- 10 locations where you b
 
 
 #### Q5 Location - Drives to 5 unknown houses
-Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day usually for 1 hour. These places cannot be identified via credit card transactions nor were accessed by other employees. Hennie stayed over at one of the unknown locations for more than half a day on 11 Jan.
+Inga(13), Loreto(15), Hennie(21), Minke(24) repeatedly visited five suspicious places around the middle of the day usually for 1 hour (Figure 25). Routes are usually to and fro GasTech and the unknown locations. These places cannot be identified via credit card transactions nor were accessed by other employees. Hennie stayed over at one of the unknown locations for more than half a day on 11 Jan. 
 
 ![Figure 25: Timeline of GPS Events at Unknown Locations](./images/Q5_unknown.png){#id .class width=100%}
 
-#### Q5 Location - Surveillance on Executives' houses
-Isia(16), Loreto(15), Hennie(21), Minke(24) spy on the executive houses in the middle of the night. There will be a brief co-location between 2 of them each time, for example, Loreto and Isia on 7 Jan at Home 10, Loreto and Minke on 9 Jan at Home 32.
+The routes that each person takes are similar (Figure 25a - d), for example, passing by Home 5 (Isak from IT) and other smaller lanes in a zig-zag manner. This raises the suspicion if the routes are elaborate plans meant to throw the police off. 
+
+![Figure 25a: Routes To Unknown Locations by Inga (13)](./images/Q5_unknown_13.png){#id .class width=100%}
+
+![Figure 25b: Routes To Unknown Locations by Loreto (15)](./images/Q5_unknown_15.png){#id .class width=100%}
+
+![Figure 25c: Routes To Unknown Locations by Hennie (21)](./images/Q5_unknown_21.png){#id .class width=100%}
+
+![Figure 25d: Routes To Unknown Locations by Minke (24)](./images/Q5_unknown_24.png){#id .class width=100%}
+
+
+#### Q5 Location - Surveillance on 4 Executives' houses
+Isia(16), Loreto(15), Hennie(21), Minke(24) spy on the 4 Executive houses in the middle of the night (Figure 26). There will be a brief co-location between 2 of them each time, for example, Loreto and Isia on 7 Jan at Home 10, Loreto and Minke on 9 Jan at Home 32. The suspects will make a drive from their homes to the area where the Executives live (Figure 26a).
 
 ![Figure 26: Timeline of Midnight Surveillance at Executives' Homes](./images/Q5_homesur.png){#id .class width=100%}
+
+![Figure 26a: Routes to Surveillance at Executives' Homes](./images/Q5_homesura.png){#id .class width=100%}
+
 
 #### Q5 Location - Surveillance at Executives' dining spots
 From the timeline of GPS Events at Brewed Awakenings and Guy's Gyros (Figure 27 and 28), we see that Isia(16), Loreto(15) and Minke(24) have co-located in food establishments that several of the Executives were at, including Sten (Car ID 31) the CEO's visit to Guy's Gyros on 19 Jan.
