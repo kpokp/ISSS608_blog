@@ -26,11 +26,11 @@ knitr::opts_chunk$set(fig.retina = 3,
                       warning = FALSE)
 ```
 
-[Part 1: Background and Methodology]() 
+[Part 1: Background and Methodology](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-1/) 
 
-[Part 2: R Packages, Data and Analysis]() 
+[Part 2: R Packages, Data and Analysis](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-2/) 
 
-[Part 3: Insights and Conclusion]() 
+[Part 3: Insights and Conclusion](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-3/) 
 
 
 ## Insights and Conlusions
@@ -40,34 +40,33 @@ Using just the credit and loyalty card data, identify the most popular locations
 
 #### Q1 Most popular locations
 The top 3 popular locations belong to the Food categories, such as Katerina's Cafe, Brew've Been Served and Hippokampos. Katerina's Cafe peaks on Saturday, Hippokampus is busier on weekdays than weekends and Brew've been Served is closed on weekends.
-
+![Figure 1: Daily Spend Transactions Heatmap](./images/Q1_popular.png){#id .class width=100%}
 
 #### Q1 Anomaly - Credit Card Posting at Fixed Hour
 Some locations only have credit card transactions posted in 1 hour within the day e.g. Bean There Done That and Brewed Awakenings, Jack's Magical Beans, Coffee Shack at 12PM.
 Corrections: Correct posting timing if GPS record shows otherwise.
-
+![Figure 2: Hourly Spend Transactions Heatmap](./images/Q1_fixedhour.png){#id .class width=100%}
 
 #### Q1 Anomaly - Kronos Mart Post Credit Card Record 1 Day Late
 Kronos Mart's credit card postings usually come 1 day late, which result in strange timing of postings at 3-9AM. 
 Corrections: Correct posting timing based on available GPS record or take the date of loyalty card record.
-
+![Figure 3: Daily Transactions of Kronos Mart by Card Type](./images/Q1_kronos.png){#id .class width=100%}
 
 #### Q1 Anomaly - Cashbacks in Multiples of $20
 Some loyalty card transactions have prices lower than the corresponding credit card transactions. The denominations are usually in multiples of $20, ranging from $20 to $80. Locations vary widely, suggesting a loyalty cashback scheme. 
 Corrections: Use credit card amount as loyalty price is non-consequential to investigation.
-
+![Figure 4: Distribution of Cashback Amount by Locations](./images/Q1_cashback.png){#id .class width=100%}
 
 #### Q1 Anomaly - Multiple Credit Cards to Loyalty Cards
 Unexpected relationships between credit card 1286 and loyalty card L3288, and loyalty card L6267 is associated with credit cards 6691 & 6899.
 Corrections: Care was taken to join credit card and loyalty card transactions to prevent duplication.
-
+![Figure 5: Network Graph of Credit Card to Loyalty Card Relationships](./images/Q1_multicards.png){#id .class width=100%}
 
 #### Q1 Anomaly - High Spend Due to Possible Fraud
 The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 9 credit cards register many high spends that are at industrial areas tying to the 9 truck drivers. The other highest spend that is not in industrial location is on Albert's Fine Clothing by credit card 1321. 
+![Figure 6: Distribution of Cashback Amount by Locations](./images/Q1_highspend.png){#id .class width=100%}
 
-Using the data table, we noticed that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud. 
-
-
+We noticed that there is a gap between the the $10k spend on 13 Jan and the next purchase by credit card 9551 on 16 Jan. This suggests that the high spend might be due to fraud.
 
 #### Q1 Anomaly - Sparse Spends due to Multiple Cards 
 

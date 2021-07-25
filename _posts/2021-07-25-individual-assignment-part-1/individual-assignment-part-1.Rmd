@@ -26,11 +26,11 @@ knitr::opts_chunk$set(fig.retina = 3,
                       warning = FALSE)
 ```
 
-[Part 1: Background and Methodology]() 
+[Part 1: Background and Methodology](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-1/) 
 
-[Part 2: R Packages, Data and Analysis]() 
+[Part 2: R Packages, Data and Analysis](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-2/) 
 
-[Part 3: Insights and Conclusion]() 
+[Part 3: Insights and Conclusion](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-3/) 
 
 ## 1. Background
 
@@ -96,4 +96,4 @@ When there is a need to showcase GPS movement or key locations, an interactive m
 Other visualizations such as barplots and scatterplots will be used to answer some of the questions. 
 
 
-### Click [here](https://www.google.com) for Part 2 - R Packages, Data and Analysis
+### Click [here](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-2/) for Part 2 - R Packages, Data and Analysis

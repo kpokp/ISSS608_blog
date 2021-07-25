@@ -14,6 +14,7 @@ output:
     toc_depth: 3
     toc_float: true
     self_contained: false
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -26,16 +27,26 @@ knitr::opts_chunk$set(fig.retina = 3,
                       warning = FALSE)
 ```
 
-[Part 1: Background and Methodology]() 
+[Part 1: Background and Methodology](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-1/) 
 
-[Part 2: R Packages, Data and Analysis]() 
+[Part 2: R Packages, Data and Analysis](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-2/) 
 
-[Part 3: Insights and Conclusion]() 
+[Part 3: Insights and Conclusion](https://kellykkw.netlify.app/posts/2021-07-25-individual-assignment-part-3/) 
 
 
 ## 4. R Packages & Data
 
 ### 4.1 R Packages
+
+The following R packages are used:
+
+- Loading data from csv files: 'readr'
+- Cleaning and manipulating data: 'tidyverse', 'DT', 'fuzzyjoin'
+- Manipulate time and date variables: 'lubridate', 'clock', 
+- Plot heat maps, gantt, parallel coordinates and scatter plot graphs: 'ggplot2', 'ggforce', 'scales'
+- Plot interactive network graph: 'visNetwork',
+- Add interactivity to ggplot charts: 'plotly', 'crosstalk',
+- Load maps & manipulate geo-spatial data: 'jpeg', 'grid', 'geohashTools', 'sf', 'tmap', 'raster', 'rgdal', 'mapview'
 
 ```{r download packages}
 # The following R packages are used for respective parts of the workflow:
@@ -66,9 +77,9 @@ for (p in packages) {
 ### 4.2 Datasets
 
 #### 4.2.1 Credit Card Data 
-    + Contains transaction of each credit card with timestamp, price and location
-    + 55 unique credit card numbers
-    + 1,490 credit card transactions
+- Contains transaction of each credit card with timestamp, price and location
+- 55 unique credit card numbers
+- 1,490 credit card transactions
 
 ```{r cc data}
 cc <- read_csv("data/cc_data.csv",
@@ -84,9 +95,9 @@ glimpse(cc)
 ```
 
 #### 4.2.2 Loyalty Card Data 
-    + Contains transaction on loyalty card with date, price and location
-    + 54 unique loyalty card numbers
-    + 1,392 loyalty card transactions
+- Contains transaction on loyalty card with date, price and location
+- 54 unique loyalty card numbers
+- 1,392 loyalty card transactions
 
 ```{r loyalty data}
 loyalty <- read_csv("data/loyalty_data.csv",
@@ -102,9 +113,9 @@ glimpse(loyalty)
 ```
 
 #### 4.2.3 GPS Data 
-    + Contains timestamped latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
-    + 40 unique Car IDs (1 to 35, 101, 104 to 107)
-    + 685,169 records
+- Contains timestamped latitude and longitude of each employee vehicle (ID) when in movement, including trucks which `id` is coded in '10X'
+- 40 unique Car IDs (1 to 35, 101, 104 to 107)
+- 685,169 records
 
 ```{r gps data}
 gps <- read_csv("data/gps.csv",
@@ -120,10 +131,10 @@ glimpse(gps)
 ```
 
 #### 4.2.4 Car Assignment Data 
-  + Contains full names of employees, department, job title and ID of cars assigned 
-  + 44 known employees
-  + 35 cars are given IDs and associated with employees
-  + 9 trucks drivers are not assigned with particular vehicle ID
+- Contains full names of employees, department, job title and ID of cars assigned 
+- 44 known employees
+- 35 cars are given IDs and associated with employees
+- 9 trucks drivers are not assigned with particular vehicle ID
 
 ```{r car assignment data}
 cars <- read_csv("data/car-assignments.csv",
@@ -139,7 +150,8 @@ cars <- cars %>% arrange(CarID) %>%
 glimpse(cars)
 ```
 
-Beyond the csv files, a tourist map image of Aliba and geospatial datasets are provided.
+Beyond the csv files, a tourist map image of Aliba (see Figure 1) and geospatial datasets are provided.
+
 ![Figure 1](./images/MC2-tourist.jpg)
 
 
@@ -148,6 +160,9 @@ Beyond the csv files, a tourist map image of Aliba and geospatial datasets are p
 ### 5.1 Credit and Loyalty Card Transactions
 
 #### 5.1.1 Correct unrecognized character in location name
+
+Replace the unrecognized characters in Katerina's Cafe location name in credit card & loyalty data using `grep`.
+
 ```{r POI names}
 # Match names of locations in credit card and loyalty card transactions to check spelling
 cc_loc <- cc %>% distinct(location) %>% arrange(location) 
@@ -240,7 +255,8 @@ edges <- dplyr::select(edges, from, to, weight) %>%
   mutate(width = weight/5 + 1)
 
 # Plot network graph to show cc and loyalty cards relationship
-netwkgraph <- visNetwork(nodes, edges, width = "100%", main = list(text = "Relationship Between Credit Card and Loyalty Cards",
+netwkgraph <- visNetwork(nodes, edges, width = "100%", 
+                         main = list(text = "Relationship Between Credit Card and Loyalty Cards",
  style = "font-family:arial;font-size:20px;")) %>% 
   visOptions(highlightNearest = TRUE,
              nodesIdSelection = list(enabled = TRUE,selected = "1")) %>% 
@@ -256,7 +272,7 @@ netwkgraph
 
 409 loyalty card transactions and 311 credit card transactions were unpaired based on exact date, spend and location. Based on the pairs of credit card and loyalty numbers, we match the remaining unmatched transactions based on date, location and a price range, specifically with loyalty price lower than credit card price. 
 
-Results show that 219 transactions have loyalty card price lower than credit card prices. The lower amount registered on the loyalty card usually ranges from $20-80, in increments of $20s. There is no obvious bias to any location or cards. This suggests that there might be a systemic program or error that led to this outcome e.g. cashback program.
+Results below show that 219 transactions have loyalty card price lower than credit card prices. The lower amount registered on the loyalty card usually ranges from $20-80, in increments of $20s. There is no obvious bias to any location or cards. This suggests that there might be a systemic program or error that led to this outcome e.g. cashback program.
 
 ```{r match round 2 - cashback}
 # Create config table based on primary matched pairs of loyalty and credit card numbers detected from network graph 
@@ -310,7 +326,7 @@ ggplotly(cashback, tooltip = c("text"))
 
 #### 5.1.4 Join unmatched credit card transactions to loyalty transactions - round 3
 
-The remaining unmatched transactions are matched based on location and price (and not date) to check for any delayed postings of credit card transactions. Results show that 7 Kronos Mart credit card transactions were posted 1 day later than its associated loyalty card transactions.
+The remaining unmatched transactions are matched based on location and price (and not date) to check for any delayed postings of credit card transactions. Results below show that 7 Kronos Mart credit card transactions were posted 1 day later than its associated loyalty card transactions.
 
 ```{r match round 3}
 # 190 cc transactions exclude matches from match round 2 (cashback)
@@ -385,7 +401,7 @@ transact_match_4 <- left_join(cc_unmatched_3,config, by = "last4ccnum") %>%
                               `==`)) %>%
   drop_na()
 
-DT::datatable(transact_match_4, filter = 'top', width = 6)
+DT::datatable(transact_match_4, filter = 'top', width = '100%', options = list(scrollX = TRUE))
 
 ```
 
@@ -424,7 +440,7 @@ trans_final <- transact_match_clean %>%
   bind_rows(loyalty_unmatched_3_clean) %>% 
   bind_rows(cc_unmatched_3)
 
-DT::datatable(trans_final, filter = 'top', width = 6)
+DT::datatable(trans_final, filter = 'top', width = '100%', options = list(scrollX = TRUE))
 ```
 
 
@@ -509,7 +525,7 @@ ggplotly(heatmap_spend, tooltip = c("text"))
 The highest spend on the credit card is $10k on Frydos Autospply n' More that does not have a loyalty card transaction, belonging to credit card 9551. 
 9 credit cards (2276, 3506, 4530, 8642, 7792, 9152, 9220, 9614, 9735) register many high spends that are at industrial areas, likely belonging to the 9 truck drivers. 
 
-```{r trans amount}
+```{r trans amount, fig.width = 8, fig.height = 5}
 spend_cc <-  ggplot(trans_final, aes(x = last4ccnum, y = location, size = price*2, color = location, 
                                      text = paste('Last 4 Credit Card Number:', last4ccnum,
                                                   '<br>Loyalty Card Number:', loyaltynum,
@@ -536,7 +552,7 @@ From the chart below, we spot anomalies from the frequency of the spends worth i
 - Late starts - Credit card 3547 started having spend on 12 Jan and 5010 started on 17 Jan
 - Sporadic records with high spends - Credit cards 2276, 3506, 4530, 7792, 8642 9152, 9220, 9614 
 
-```{r daily spend - spend frequency}
+```{r daily spend - spend frequency, fig.height=6}
 ly_count <- trans_final %>%
   group_by(datestamp, last4ccnum) %>%
   summarise(n = n(), total_price = sum(price)) %>% 
@@ -548,12 +564,496 @@ ly_count_p <- ggplot(ly_count, aes(x = datestamp, y = n, fill = total_price,
                                               '<br>Date:', datestamp))) + 
   geom_bar(stat='identity') +
   theme_minimal() +
-  theme(text = element_text(size=7)) +
+  theme(axis.title.x = element_blank()) +
+  theme(text = element_text(size=7), axis.text.x=element_text(angle=45, hjust=1)) +
   facet_wrap(~last4ccnum) +
-  labs(title = "Transaction Frequency By Credit Card Number",
-      x = "Date", y = "Transaction Frequency", fill = "Total Spend ($)") 
+  theme(panel.spacing = unit(1, "lines")) +
+  labs(title = "Daily Transaction Frequency By Credit Card Number",
+      fill = "Total Spend ($)") 
 
 ggplotly(ly_count_p, tooltip = c("text"))
 ```
+
+### 5.2 GPS Logs and Map Layers
+
+
+#### 5.2.1 Set up map layers using the tourist map provided
+
+We plot the raster layer using tmap to merge the rgb bands and use sf to import the vector GIS files into ESRI shapefile format.
+
+```{r map layers}
+# Import MC2-tourist.tif created using QGIS
+ap <- raster("data/Geospatial/MC2-tourist.tif")
+
+# Plotting raster layer using tmap to merge rgb bands
+tm_shape(ap) +
+tm_rgb(ap, r=1,g=2,b=3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255)
+
+# Use sf to import Vector GIS data files in ESRI shapefile format
+abila_st <- st_read(dsn = "data/Geospatial",
+                    layer = "Abila")
+
+```
+
+#### 5.2.2 Create movement path from GPS logs 
+
+We then create movement path by converting the aspatial data into a data frame and group the paths by id.
+
+```{r gps prep}
+# Converting aspatial data into simple feature data frame using st_as_sf
+gps_sf <- st_as_sf(gps,
+                   coords = c("long","lat"),
+                            # EPSG 4326 stands for wgs84 geo. coord sys
+                            crs = 4326)
+
+# Group paths by ID and cast as linestring
+gps_path <- gps_sf %>%
+            group_by(id) %>%
+            # Due to peculiar nature of group by, we need to do an action such as summarize
+            summarize(m = mean(Timestamp),
+                      do_union = FALSE) %>%
+            st_cast("LINESTRING") %>%
+            ungroup()
+# Have to slice the paths by days, or time period to derive meaningful paths
+```
+
+
+#### 5.2.3 Visualize gps paths by Car ID to detect gps anomalies
+
+Results from the maps show that Car ID 28 and 9 have GPS data issues:
+
+- Car ID 28's GPS coordinates are systematically misaligned. Correction can be done by systematically shifting all GPS coordinates using GASTech building as the anchoring position and averaging out the coordinates
+- Car ID 9's GPS records are spotty, journeys did not end and start in the same place. Correction can be done by extrapolating journeys. 
+
+```{r plot gps}
+# Plot gps paths by car IDs
+tmap_mode("view")
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+tm_shape(gps_path) +
+  tm_lines() +
+tm_facets(by = "id", ncol = 4) 
+```
+
+
+Closer look at GPS of Car 28 and 9:
+```{r faulty gps of 28 & 9}
+# Zoom in on car 28 & 9
+gps_path_selected <- gps_path %>% filter(id %in% c("28","9"))
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+tm_shape(gps_path_selected) +
+  tm_lines() +
+tm_facets(by = "id", ncol = 2)
+```
+
+
+
+#### 5.2.4 Resolve data issues in Car 28 GPS log by taking the average coordinates over a wider time interval
+
+Car ID 28's jittery GPS logs resolved by taking the mean coordinates over a 20 second interval. 
+
+```{r fix gps 28}
+# Change GPS timestamp to POSIX format
+gps$Timestamp <- as.POSIXct(gps$Timestamp, format = "%m/%d/%Y  %H:%M:%S")
+
+# Group timestamp in intervals of 20 seconds and select the mean coordinates to smoothen out the path
+gps_28 <- gps %>%
+  filter(id == "28") %>%
+  mutate(Timestamp = round_date(Timestamp, "20 sec")) %>%
+  mutate(lat = round(lat - 00.004,3) ) %>% 
+  mutate(long = round(long + 00.004,3) ) %>%
+  group_by(Timestamp) %>%
+  summarise(lat = mean(lat, na.rm = FALSE), long = mean(long, na.rm = FALSE)) %>% 
+  mutate(id = "28") %>%
+  ungroup() 
+
+# Visualize car 28 GPS movement
+gps_sf_28 <- st_as_sf(gps_28,
+                   coords = c("long","lat"),
+                            # EPSG 4326 which stands for wgs84 geo. coord sys
+                            crs = 4326)
+
+gps_path_28 <- gps_sf_28 %>%
+  group_by(id) %>%
+  # Due to peculiar nature of group by, we need to do an action such as summarize
+  summarize(m = mean(Timestamp),
+            do_union = FALSE) %>%
+  st_cast("LINESTRING") %>%
+  ungroup()
+
+tmap_mode("view")
+
+tm_shape(ap) +
+  tm_rgb(ap, r=1,g=2,b=3,
+         alpha = NA,
+         saturation = 1,
+         interpolate = TRUE,
+         max.value = 255) +
+tm_shape(gps_path_28) +
+  tm_lines()
+
+```
+
+#### 5.2.5 Resolve data issues in Car 9 GPS log
+
+Car ID 9 missing GPS records seems to occur randomly. Unfortunately, we are unable to extrapolate the missing GPS records with safe assumptions. We would take note to register events of Car ID 9 by taking the location when the car stopped or start, whichever that makes more sense (i.e. closer to a meaningful location). 
+
+```{r fix gps 9}
+# Understand car ID 9's GPS pattern
+gps_9 <- gps %>% 
+  mutate(datestamp = as_date(Timestamp)) %>%
+  mutate(time = as.POSIXct(Timestamp,format = "%H:%M:%S")) %>%
+  filter(id == "9", datestamp == "2014-01-07") 
+
+# Plot GPS pattern in scatterplot chart
+gps_9_line <- gps_9 %>%
+  ggplot(aes(x = time, y = lat)) +
+  geom_point() +
+  geom_line(color = "red") +
+  facet_grid(row = vars(datestamp), scales = "free") +
+  labs(title = "Latitude Coordinates of Car ID 9",
+                   x = "Time", y = "Latitude")  
+
+ggplotly(gps_9_line)  
+```
+
+#### 5.2.6 Detect and process events from GPS log
+
+Stops between GPS logs provides clues to where the person was heading to. This study will define all stops between GPS log records that spans above 5 minutes as events to be investigated. Each event will have a time span, a location, and a person tied to it. As a rule of thumb, homes of employee will be first identified as locations with pauses between GPS logs exceeding 5 hours for further investigation. 
+
+```{r event prep}
+# Replace gps records of Car ID 28
+gps_28 <- gps_28 %>%
+  dplyr::select(Timestamp, id, lat, long)
+
+gps_clean <- gps %>%
+  filter(!id == "28") %>%
+  rbind(gps_28) 
+
+# Make car assignment table neat
+cars_neat <- cars %>% 
+  unite("name", FirstName, LastName, sep = " ") %>%
+  rename(department = CurrentEmploymentType , title = CurrentEmploymentTitle)
+
+# Merge car assignments to gps data & sort table by id & timestamp
+gps_name <- gps_clean %>%
+  left_join(cars_neat, by = c("id" = "CarID")) %>%
+  arrange(id, Timestamp) %>%
+  mutate(Timestamp = as.POSIXct(Timestamp, format = "%m/%d/%Y  %H:%M:%S"))
+
+# Find difference between timestamp and id
+gps_name_temp <- dplyr::select(gps_name,Timestamp)
+
+time_diff <- tail(gps_name_temp,-1) - head(gps_name_temp,-1)
+
+# Join & Tag Start and Stop for Intervals > 5 min
+gps_name_diff <- bind_cols(time_diff$Timestamp,tail(gps_name,-1)) %>%
+  rename(diff=...1) %>%
+  group_by(id) %>%
+  
+  # If interval btw timestamps is more than 5 mins, tag as an event
+  mutate(event_stop = ifelse(diff/60 > 5,'stop',
+                          ifelse(diff/60 < 0,'stop',NA))) %>%
+  mutate(event_start = lead(event_stop)) %>% 
+  
+  # If interval between timestamps is more than 5 hours, tag as home to help identify home locations later
+  mutate(home = ifelse(diff/60/60 > 5,'home',NA)) %>%
+  mutate(diff = seconds_to_period(diff)) %>%
+  mutate(event_start = ifelse(event_start == 'stop','start',NA)) %>%
+  
+  # Encode lat long into geohash level 7    
+  mutate(geohash = gh_encode(latitude = lat, 
+                               longitude = long, 
+                               precision = 7L)) %>%
+  ungroup() 
+```
+
+
+#### 5.2.7 Identify events of Car ID 9 and 28
+
+There is a need to consciously merge the start and stop locations of Car ID 9 as there are places of the interest that are registered by starts (e.g. Bean There Done That) and places registered by stops (e.g. U Pump). We will do the event patching if events identified cannot be matched to a location. 
+
+```{r car 9 events}
+# Inspect events of Car ID 9
+events_9 <- gps_name_diff %>% 
+          filter(id == "9", event_stop == "stop" | event_start == "start") %>%
+          unite(event, c("event_start", "event_stop")) %>%
+          dplyr::select(Timestamp, lat, long, event)
+
+# view the locations over the jpeg map
+map <- ggplot(events_9, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=event), size = 3, alpha = 0.8) +
+  
+  # Add label
+    labs(title = "Start and Stop Coordinates of Car ID 9 Events",
+                   x = "Longitude", y = "Latitude", color = "Type of Events")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+```{r car 28 events}
+# Inspect events of Car ID 9
+events_28 <- gps_name_diff %>% 
+          filter(id == "28", event_stop == "stop" | event_start == "start") %>%
+          unite(event, c("event_start", "event_stop")) %>%
+          dplyr::select(Timestamp, lat, long, event)
+
+# view the locations over the jpeg map
+map <- ggplot(events_28, aes(long, lat)) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=event), size = 3, alpha = 0.8) +
+  
+  # Add label
+    labs(title = "Start and Stop Coordinates of Car ID 28 Events",
+                   x = "Longitude", y = "Latitude", color = "Type of Events")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+#### 5.2.8 Capture all GPS events 
+
+3,067 events with locations that would be later identified as home, places of interest, or unknown/suspicious locations.
+
+```{r events}
+# 3,067 events that span more than 5 minutes
+events <- gps_name_diff %>%
+  filter(event_stop == "stop") %>%
+  mutate(event_start_time = Timestamp - diff) %>%
+  rename(event_stop_time = Timestamp) %>% 
+  mutate(event_date = as_date(event_start_time)) %>% 
+  dplyr::select(event_stop, home,event_date, event_start_time, event_stop_time,
+                        diff, lat, long, geohash, id, name, department, title) %>%
+  filter(diff > 0)
+
+glimpse(events)
+```
+
+#### 5.2.9 Identify home locations of employees
+
+The interactive map shows that some of the employees stay together e.g. employees with Car ID 30, 22 and 23. 
+
+Furthermore, due to GPS issues, employee with Car ID 28 has home locations spread around a concentrated area, while employee with Car ID 9 spreads out over a wider area. 
+
+We also picked up GASTech as a location especially for truck drivers, who park their vehicles at the company at the end of their work day.
+
+```{r home events}
+# Identify homes or place of accommodation of employees - 500 events
+home <- events %>% 
+  filter(home == "home") 
+
+home_freq <- home %>%
+  dplyr::select(id, lat, long, geohash) %>%
+  mutate(lat = round(lat,3), long = round(long,3)) %>%              
+  group_by(id, lat, long, geohash) %>%
+  summarise(n = n()) %>%
+  ungroup()
+
+# view the home locations over the jpeg map
+map <- ggplot(home_freq, aes(long, lat, text = paste("geohash:", geohash))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=id, size = n), alpha = 0.8) +
+  
+  # Add label
+    labs(title = "Likely Home Locations by Car IDs",
+                   x = "Longitude", y = "Latitude", color = "Car ID", size = "Size of Bubbles - Frequency")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map)
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+
+```
+
+
+#### 5.2.10 Identify likely geohash of employees' homes locations 
+
+```{r home config}
+# Home location config table
+location_labels_home <- home_freq %>% 
+  group_by(id) %>%
+  arrange(desc(n)) %>%
+  slice_head() %>% 
+  ungroup() %>%
+  dplyr::select(geohash, id) %>%
+  group_by(geohash) %>% 
+  mutate(location = paste0(id, collapse = "/")) %>%
+  arrange(geohash) %>%
+  slice_head() %>% 
+  mutate(label = "Home") %>%
+  mutate(location = paste(label,location, sep = " ")) %>%
+  dplyr::select(!c(id,label)) %>%
+  ungroup()
+  
+location_labels_home <- home %>% 
+  left_join(location_labels_home, by = "geohash") %>%
+  drop_na() %>% 
+  group_by(location) %>%
+  arrange(location) %>%
+  slice_head() %>%
+  ungroup() %>% 
+  mutate(category = "Home") %>%
+  dplyr::select("lat","long","geohash","location","category") %>%
+  mutate(location = ifelse(geohash == "sw3tn4k", "GASTech", 
+                                  ifelse(geohash == "sw3tnw2", "Chostus Hotel",location))) %>%
+  mutate(category = ifelse(location == "GASTech", "Company", 
+                                  ifelse(location == "Chostus Hotel", "Leisure","Home"))) 
+
+# view the POIs over the jpeg map
+map <- ggplot(location_labels_home, aes(long, lat, text = paste('Geohash:', geohash,
+                         '<br>Latitude: ', lat,
+                         '<br>Longitude: ', long,
+                         '<br>Location: ', location))) + 
+    
+    theme(panel.border = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey")) +
+
+  # Add points
+    geom_point(aes(color=location), alpha = 0.8, size =4) +
+  
+  # Add label
+    labs(title = "Accommodation Locations by Car IDs",
+                   x = "Longitude", y = "Latitude", color = "Accommodation")
+
+# Use ggplotly to make it interactive so we can pick the right geohash visually
+pp <- ggplotly(map, tooltip = "text")
+layout(pp, images = list(
+  list(
+    source = "https://raw.githubusercontent.com/kpokp/ISSS608_blog/main/_posts/2021-06-10-individual-assignment/images/MC2-tourist.jpg",
+    opacity = 0.3,
+    layer = "below",
+    xref = "x",
+    yref = "y",
+    sizing="stretch",
+    x= 24.8244,
+    y= 36.0952,
+    sizex= 0.0852,
+    sizey= 0.05
+  )
+))
+```
+
+#### 5.2.11 Identify relationships of employees who share homes  
+
+From the parallel coordinate plot, we see that 8 of the 15 employees who stay in shared homes are from the Security department. 2 of the homes - Home 13/15/16/21 and Home 22/23/30 are occupied only by employees of the Security department. Home 13/15/16/21 occupants take up Perimeter and Site Control duties while Home 22/23/30 occupants are from the Badging Office and one of them is a Security Group Manager. The other 2 homes make up of employees from varied departments such as Engineering, Facilities, IT and Security IT. 
+
+```{r relationships between shared homes}
+# Prepare datatset for parallel coordinates plot
+cars_home <- cars_neat %>%
+  filter(CarID %in% c("22","23","30","6","25","29","17","24","33","13","15","16","21","14","18")) %>%
+  mutate(location = ifelse(CarID %in% c("22","23","30"),"Home 22/23/30",
+                           ifelse(CarID %in% c("6","25","29"),"Home 6/25/29",
+                           ifelse(CarID %in% c("14","18"),"Home 14/18",
+                           ifelse(CarID %in% c("17","24","33"),"Home 17/24/33",
+                           ifelse(CarID %in% c("13","15","16","21"),"Home 13/15/16/21",NA)))))) %>%
+  rename(a.CarID = CarID, b.name = name, c.location = location, d.department = department, e.title = title) %>%
+  group_by(b.name, a.CarID, d.department, e.title, c.location) %>%
+  summarise(freq = n()) %>%
+  gather_set_data(1:5) %>%
+  ungroup()
+
+# Plot parallel coordinate plot
+home_para_cord <- ggplot(cars_home, aes(x, id = id, split = y, value = freq)) +
+  geom_parallel_sets(aes(fill = c.location), alpha = 0.3, axis.width = 0.1) +
+  geom_parallel_sets_axes(axis.width = 0.1, fill = "white", colour = "lightgrey") +
+  geom_parallel_sets_labels(colour ="black",angle = 360,size = 3) +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line = element_blank()) +
+ # Add label
+  labs(title = "Characteristics of Employees Sharing Homes",
+       x = "Characteristics", fill = "Home Locations") 
+  #facet_grid(~location)
+
+home_para_cord
+  
+```
+
+
 
 
